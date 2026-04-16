@@ -1,11 +1,11 @@
-# PRD: Questionnaire Tool
+# PRD: Question Tool
 
-## Project Name: pi-questionnaire
+## Project Name: pi-question
 
 **Version:** 1.0.0  
 **Date:** 2026-04-15  
 **Status:** Planning  
-**Target:** AI agent tool for collecting user responses via structured questionnaires
+**Target:** AI agent tool for collecting user responses via structured questions
 
 ---
 
@@ -13,7 +13,7 @@
 
 **Problem Statement**
 
-Current `questionnaire` tool lacks flexibility for diverse question types:
+Current `question` tool lacks flexibility for diverse question types:
 - No support for multi-select/checkboxes
 - No way to pre-select or recommend options
 - Ambiguous handling of "other" free-form input
@@ -21,7 +21,7 @@ Current `questionnaire` tool lacks flexibility for diverse question types:
 
 **Proposed Solution**
 
-Enhanced questionnaire tool supporting:
+Enhanced question tool supporting:
 - `type: "single"` (default) — radio-style single selection
 - `type: "multi"` — checkbox-style multiple selections
 - `recommended` field for pre-selection with visual highlight
@@ -56,23 +56,23 @@ Enhanced questionnaire tool supporting:
 ### 3.1 Tool Schema
 
 ```typescript
-interface QuestionnaireOption {
+interface QuestionOption {
   value: string;           // Unique identifier for the option
   label: string;           // Display text shown to user
   description?: string;    // Optional secondary text below label
   recommended?: boolean;   // Pre-select and highlight (default: false)
 }
 
-interface Questionnaire {
-  questions: QuestionnaireQuestion[];
+interface Question {
+  questions: QuestionQuestion[];
 }
 
-interface QuestionnaireQuestion {
+interface QuestionQuestion {
   id: string;              // Unique identifier for the question
   label?: string;          // Short label for tab bar (defaults to id)
   prompt: string;          // Full question text displayed
   type: "single" | "multi"; // Selection type
-  options: QuestionnaireOption[];
+  options: QuestionOption[];
   allowOther?: boolean;    // Enable free-form input (default: false)
   required?: boolean;      // Always true (for future extensibility)
 }
@@ -81,7 +81,7 @@ interface QuestionnaireQuestion {
 ### 3.2 Result Schema
 
 ```typescript
-interface QuestionnaireResult {
+interface QuestionResult {
   [questionId: string]: SingleResult | MultiResult;
 }
 
@@ -146,7 +146,7 @@ const OTHER_INPUT = "(other)";    // Indicates free-form text included
 
 ```json
 {
-  "name": "questionnaire",
+  "name": "question",
   "parameters": {
     "questions": [
       {
@@ -264,7 +264,7 @@ const OTHER_INPUT = "(other)";    // Indicates free-form text included
 ## 8. Repository Location
 
 ```
-~/Repos/github.com/rwese/pi-questionnaire/
+~/Repos/github.com/rwese/pi-question/
 ```
 
 ---
