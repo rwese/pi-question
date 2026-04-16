@@ -48,7 +48,7 @@ interface MultiAnswer {
 	values: string[];
 	labels: string[];
 	wasCustom: boolean[];
-	message?: string;
+	comments: Record<number, string>;
 }
 
 describe("Message Feature v2", () => {
@@ -113,7 +113,7 @@ describe("Message Feature v2", () => {
 	});
 
 	describe("Multi-Select Answers", () => {
-		it("multi-select answer has values, labels, wasCustom arrays and message", async () => {
+		it("multi-select answer has values, labels, wasCustom arrays and comments", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
@@ -131,7 +131,7 @@ describe("Message Feature v2", () => {
 								values: ["git", "docker"],
 								labels: ["Git", "Docker"],
 								wasCustom: [false, false],
-								message: "Daily drivers",
+								comments: { 0: "Git for version control", 1: "Docker for containers" },
 							}],
 							cancelled: false,
 						};
@@ -162,10 +162,10 @@ describe("Message Feature v2", () => {
 			expect(answer.values).toEqual(["git", "docker"]);
 			expect(answer.labels).toEqual(["Git", "Docker"]);
 			expect(answer.wasCustom).toEqual([false, false]);
-			expect(answer.message).toBe("Daily drivers");
+			expect(answer.comments).toEqual({ 0: "Git for version control", 1: "Docker for containers" });
 		});
 
-		it("multi-select output shows checkbox list", async () => {
+		it("multi-select output shows checkbox list with comments", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
@@ -183,6 +183,7 @@ describe("Message Feature v2", () => {
 								values: ["git", "tmux"],
 								labels: ["Git", "tmux"],
 								wasCustom: [false, false],
+								comments: { 0: "Version control" },
 							}],
 							cancelled: false,
 						};
@@ -212,6 +213,7 @@ describe("Message Feature v2", () => {
 			expect(result.content[0].text).toContain("- [x] Git");
 			expect(result.content[0].text).toContain("- [x] tmux");
 			expect(result.content[0].text).toContain("### Select tools");
+			expect(result.content[0].text).toContain("- User Comment: Version control");
 		});
 	});
 
@@ -252,7 +254,7 @@ describe("Message Feature v2", () => {
 			expect(rendered).toBeDefined();
 		});
 
-		it("renderResult shows checkbox list for multi-select", () => {
+		it("renderResult shows checkbox list for multi-select with comments", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
@@ -276,6 +278,7 @@ describe("Message Feature v2", () => {
 							values: ["git", "docker"],
 							labels: ["Git", "Docker"],
 							wasCustom: [false, false],
+							comments: { 0: "Version control" },
 						},
 					],
 					cancelled: false,

@@ -52,7 +52,7 @@ interface MultiAnswer {
 	values: string[];
 	labels: string[];
 	wasCustom: boolean[];
-	message?: string;
+	comments: Record<number, string>;
 }
 
 type Answer = SingleAnswer | MultiAnswer;
@@ -220,6 +220,8 @@ export default function question(pi: ExtensionAPI) {
 				const answers = new Map<number, Answer>();
 				let pendingOther: PendingOther | null = null;
 				let messageMode = false;
+				let commentMode = false;
+				let commentOptionIndex: number | null = null;
 
 				// For multi-select: track which options are selected
 				const selectedOptions = new Map<number, Set<number>>();
@@ -377,13 +379,13 @@ export default function question(pi: ExtensionAPI) {
 					values: string[],
 					labels: string[],
 					wasCustom: boolean[],
-					message?: string,
+					comments?: Record<number, string>,
 				) {
 					const answer: MultiAnswer = {
 						values,
 						labels,
 						wasCustom,
-						message,
+						comments: comments || {},
 					};
 					answers.set(questionIndex, answer);
 				}
@@ -508,6 +510,25 @@ export default function question(pi: ExtensionAPI) {
 						submitPendingWithMessage(value);
 						return;
 					}
+
+					if (commentMode && commentOptionIndex !== null) {
+						const trimmed = value.trim();
+						const existingAnswer = answers.get(currentTab) as MultiAnswer | undefined;
+						const comments = existingAnswer?.comments ? { ...existingAnswer.comments } : {};
+						if (trimmed) {
+							comments[commentOptionIndex] = trimmed;
+						} else {
+							delete comments[commentOptionIndex];
+						}
+						const { values, labels, wasCustom } = getSelectedValues();
+						saveMultiAnswer(currentTab, values, labels, wasCustom, comments);
+						commentMode = false;
+						commentOptionIndex = null;
+						editor.setText('');
+						refresh();
+						return;
+					}
+
 					if (inputQuestionIndex === null) return;
 					const trimmed = value.trim();
 					const q = questions[inputQuestionIndex];
@@ -552,6 +573,19 @@ export default function question(pi: ExtensionAPI) {
 						}
 						if (matchesKey(data, Key.tab)) {
 							skipMessageAndSubmit();
+							return;
+						}
+						editor.handleInput(data);
+						refresh();
+						return;
+					}
+
+					if (commentMode && commentOptionIndex !== null) {
+						if (matchesKey(data, Key.escape)) {
+							commentMode = false;
+							commentOptionIndex = null;
+							editor.setText('');
+							refresh();
 							return;
 						}
 						editor.handleInput(data);
@@ -660,6 +694,19 @@ export default function question(pi: ExtensionAPI) {
 							showMessagePrompt(currentTab, true);
 						} else {
 							showMessagePrompt(currentTab, false);
+						}
+						return;
+					}
+
+					// Shift+Tab: Enter comment mode for currently selected option (multi only)
+					if (matchesKey(data, 'shift+tab') && isMultiQ) {
+						const selected = selectedOptions.get(currentTab);
+						if (selected && selected.has(optionIndex)) {
+							commentMode = true;
+							commentOptionIndex = optionIndex;
+							editor.setText('');
+							refresh();
+							return;
 						}
 						return;
 					}
@@ -793,6 +840,23 @@ export default function question(pi: ExtensionAPI) {
 						}
 						lines.push('');
 						add(theme.fg('dim', ' Enter save • Tab skip • Esc back'));
+					} else if (commentMode && q) {
+						const optLabel = opts[commentOptionIndex!]?.label || '';
+						add(theme.fg('text', ` Add comment for: ${optLabel}`));
+						lines.push('');
+						// Show existing comment if any
+						const existingAnswer = answers.get(currentTab) as MultiAnswer | undefined;
+						const existingComment = existingAnswer?.comments[commentOptionIndex!];
+						if (existingComment) {
+							add(theme.fg('muted', ` Current: ${existingComment}`));
+							lines.push('');
+						}
+						add(theme.fg('muted', ' Comment:'));
+						for (const line of editor.render(width - 2)) {
+							add(` ${line}`);
+						}
+						lines.push('');
+						add(theme.fg('dim', ' Enter save • Esc cancel'));
 					} else if (currentTab === questions.length) {
 						add(theme.fg('accent', theme.bold(' Ready to submit')));
 						lines.push('');
@@ -807,10 +871,15 @@ export default function question(pi: ExtensionAPI) {
 									add(
 										`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', valuesStr)}`,
 									);
-									if (multiAnswer.message) {
-										add(
-											`     ${theme.fg('muted', `Note: "${multiAnswer.message}"`)}`,
-										);
+									if (multiAnswer.comments) {
+										for (const [idx, comment] of Object.entries(multiAnswer.comments)) {
+											const label = multiAnswer.labels[Number(idx)];
+											if (label) {
+												add(
+													`     ${theme.fg('muted', `Comment on "${label}": "${comment}"`)}`,
+												);
+											}
+										}
 									}
 								} else {
 									const singleAnswer = answer as SingleAnswer;
@@ -843,13 +912,13 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					lines.push('');
-					if (!inputMode && !messageMode) {
+					if (!inputMode && !messageMode && !commentMode) {
 						const help = isMulti
 							? isMultiQ
-								? ' ←→ navigate • ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
+								? ' ←→ navigate • ↑↓ select • Space☐ toggle • Tab↹ add note • Shift+Tab↖ comment • Enter confirm • Esc cancel'
 								: ' ←→ navigate • ↑↓ select • Tab↹ add note • Enter confirm • Esc cancel'
 							: isMultiQ
-								? ' ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
+								? ' ↑↓ select • Space☐ toggle • Tab↹ add note • Shift+Tab↖ comment • Enter confirm • Esc cancel'
 								: ' ↑↓ navigate • Enter select • Tab↹ add note • Esc cancel';
 						add(theme.fg('dim', help));
 					}
@@ -898,8 +967,13 @@ export default function question(pi: ExtensionAPI) {
 
 				if (q.type === 'multi') {
 					const multiAnswer = answer as MultiAnswer;
-					for (const label of multiAnswer.labels) {
+					for (let i = 0; i < multiAnswer.labels.length; i++) {
+						const label = multiAnswer.labels[i];
 						lines.push(`- [x] ${label}`);
+						const comment = multiAnswer.comments?.[i];
+						if (comment) {
+							lines.push(`  - User Comment: ${comment}`);
+						}
 					}
 					if (multiAnswer.labels.length === 0) {
 						lines.push(`- (no selection)`);
@@ -952,8 +1026,13 @@ export default function question(pi: ExtensionAPI) {
 
 				if (q.type === 'multi') {
 					const multiAnswer = answer as MultiAnswer;
-					for (const label of multiAnswer.labels) {
+					for (let i = 0; i < multiAnswer.labels.length; i++) {
+						const label = multiAnswer.labels[i];
 						lines.push(`- [x] ${label}`);
+						const comment = multiAnswer.comments?.[i];
+						if (comment) {
+							lines.push(`  - User Comment: ${comment}`);
+						}
 					}
 					if (multiAnswer.labels.length === 0) {
 						lines.push(`- (no selection)`);

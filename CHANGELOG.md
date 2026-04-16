@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-04-16
+
+### Added
+
+- **Per-option comments**: Shift+Tab on selected multi-select option adds a comment to that specific option
+- `comments` field in MultiAnswer interface (`Record<number, string>`) replaces `message`
+- Comment mode UI with option label display and existing comment preview
+- Comments preserved when navigating between questions or using Tab notes
+
+### Changed
+
+- **Multi-select output format**: comments now appear inline under each selected option
+- `MultiAnswer.message?: string` → `MultiAnswer.comments: Record<number, string>`
+- Updated keyboard navigation: Shift+Tab for comments, Tab for answer notes
+
 ## [0.2.0] - 2026-04-15
 
 ### Added

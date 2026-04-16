@@ -1,15 +1,37 @@
 # @rwese/pi-question
 
-Unified question tool for the pi coding agent with single/multi-question support, optional notes, and custom input.
+Unified question tool for the pi coding agent with single/multi-question support, optional notes, per-option comments, and custom input.
 
 ## Features
 
-- **Single question**: simple options list with keyboard navigation
-- **Multiple questions**: tab bar interface for sequential questioning
-- **Optional notes**: add context to any answer via Tab key
-- **Custom input**: "Type something" option with inline editor
-- **Answer review**: summary screen before final submission
-- **Validation**: unique question IDs, required options count
+- **Single-select questions**: Radio-style selection with keyboard navigation
+- **Multi-select questions**: Checkbox-style selection for multiple answers
+- **Recommended options**: Pre-select and highlight recommended choices
+- **Per-option comments**: Add comments to individual selected options (Shift+Tab)
+- **Optional notes**: Add context to the entire answer via Tab key
+- **Custom input**: "Other" option with inline text editor for free-form input
+- **Multi-question support**: Tab bar interface for sequential questioning
+- **Answer review**: Summary screen before final submission
+- **Markdown output**: Clean markdown formatting for AI consumption
+- **Auto-disable**: Tool is not registered in non-interactive mode (`--print`/`-p`)
+
+### Output Format
+
+**Single-select:**
+```markdown
+### Question prompt?
+
+- Selected option
+```
+
+**Multi-select:**
+```markdown
+### Question prompt?
+
+- [x] Option A
+  - User Comment: <comment>
+- [x] Option B
+```
 
 ## Installation
 
@@ -84,7 +106,9 @@ npm run validate
 | ↑/↓ | Navigate options |
 | Enter | Select option + advance |
 | ←/→ | Navigate questions (multi) |
-| Tab | Add note to selected option |
+| Space | Toggle option selection (multi) |
+| Tab | Add note to answer |
+| Shift+Tab | Add comment to selected option (multi) |
 | Esc | Cancel/Back |
 
 ## License
