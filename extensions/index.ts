@@ -9,7 +9,7 @@
  * - Markdown output: single = plain bullet, multi = [x] checkboxes
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from '@mariozechner/pi-coding-agent';
 import {
 	Editor,
 	type EditorTheme,
@@ -17,8 +17,8 @@ import {
 	matchesKey,
 	Text,
 	truncateToWidth,
-} from "@mariozechner/pi-tui";
-import { Type } from "@sinclair/typebox";
+} from '@mariozechner/pi-tui';
+import { Type } from '@sinclair/typebox';
 
 // Types
 interface QuestionOption {
@@ -30,7 +30,7 @@ interface QuestionOption {
 
 type RenderOption = QuestionOption & { isOther?: boolean };
 
-type QuestionType = "single" | "multi";
+type QuestionType = 'single' | 'multi';
 
 interface Question {
 	questionTopic: string;
@@ -70,28 +70,28 @@ interface PendingOther {
 
 // Error types
 interface QuestionnaireError {
-	code: "MULTIPLE_RECOMMENDED" | "INVALID_TYPE" | "EMPTY_OPTIONS";
+	code: 'MULTIPLE_RECOMMENDED' | 'INVALID_TYPE' | 'EMPTY_OPTIONS';
 	message: string;
 	questionIndex?: number;
 	recommendedCount?: number;
 }
 
 // Constants
-const OTHER_VALUE = "__other__";
-const OTHER_LABEL = "Other";
-const NO_CHOICE = "(no choice)";
-const OTHER_INPUT = "(other)";
+const OTHER_VALUE = '__other__';
+const OTHER_LABEL = 'Other';
+const NO_CHOICE = '(no choice)';
+const OTHER_INPUT = '(other)';
 
 // Schema
 const QuestionOptionSchema = Type.Object(
 	{
-		value: Type.String({ description: "The value returned when selected" }),
-		label: Type.String({ description: "Display label for the option" }),
+		value: Type.String({ description: 'The value returned when selected' }),
+		label: Type.String({ description: 'Display label for the option' }),
 		description: Type.Optional(
-			Type.String({ description: "Optional description shown below label" }),
+			Type.String({ description: 'Optional description shown below label' }),
 		),
 		recommended: Type.Optional(
-			Type.Boolean({ description: "Pre-select and highlight this option" }),
+			Type.Boolean({ description: 'Pre-select and highlight this option' }),
 		),
 	},
 	{ additionalProperties: false },
@@ -102,14 +102,15 @@ const QuestionSchema = Type.Object(
 		questionTopic: Type.String({
 			description: "Short label for tab bar, e.g. 'Language', 'Tools'",
 		}),
-		prompt: Type.String({ description: "The full question text displayed to the user" }),
+		prompt: Type.String({ description: 'The full question text displayed to the user' }),
 		type: Type.Optional(
-			Type.Union([Type.Literal("single"), Type.Literal("multi")], {
-				description: "Question type: 'single' (radio) or 'multi' (checkbox). Default: 'single'",
+			Type.Union([Type.Literal('single'), Type.Literal('multi')], {
+				description:
+					"Question type: 'single' (radio) or 'multi' (checkbox). Default: 'single'",
 			}),
 		),
 		options: Type.Array(QuestionOptionSchema, {
-			description: "Available options to choose from",
+			description: 'Available options to choose from',
 			minItems: 1,
 		}),
 	},
@@ -119,7 +120,7 @@ const QuestionSchema = Type.Object(
 const QuestionnaireParams = Type.Object(
 	{
 		questions: Type.Array(QuestionSchema, {
-			description: "Array of question objects",
+			description: 'Array of question objects',
 			minItems: 1,
 		}),
 	},
@@ -129,9 +130,13 @@ const QuestionnaireParams = Type.Object(
 function errorResult(
 	message: string,
 	error: QuestionnaireError,
-): { content: { type: "text"; text: string }[]; details: QuestionnaireResult; error: QuestionnaireError } {
+): {
+	content: { type: 'text'; text: string }[];
+	details: QuestionnaireResult;
+	error: QuestionnaireError;
+} {
 	return {
-		content: [{ type: "text", text: message }],
+		content: [{ type: 'text', text: message }],
 		details: { questions: [], answers: [], cancelled: true },
 		error,
 	};
@@ -140,37 +145,37 @@ function errorResult(
 function validationError(
 	message: string,
 	questions: Question[] = [],
-): { content: { type: "text"; text: string }[]; details: QuestionnaireResult } {
+): { content: { type: 'text'; text: string }[]; details: QuestionnaireResult } {
 	return {
-		content: [{ type: "text", text: message }],
+		content: [{ type: 'text', text: message }],
 		details: { questions, answers: [], cancelled: true },
 	};
 }
 
 export default function question(pi: ExtensionAPI) {
 	pi.registerTool({
-		name: "question",
-		label: "Question",
+		name: 'question',
+		label: 'Question',
 		description:
-			"Collect user decisions through questions. Use when: gathering preferences, confirming configurations, clarifying ambiguous interpretations. Features: single/multiple choice, recommended defaults. Output: markdown.",
+			'Collect user decisions through questions. Use when: gathering preferences, confirming configurations, clarifying ambiguous interpretations. Features: single/multiple choice, recommended defaults. Output: markdown.',
 		parameters: QuestionnaireParams,
 
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			if (!ctx.hasUI) {
 				return validationError(
-					"Error: UI not available (running in non-interactive mode)",
+					'Error: UI not available (running in non-interactive mode)',
 					[],
 				);
 			}
 			if (!params.questions || params.questions.length === 0) {
-				return validationError("Error: No questions provided", []);
+				return validationError('Error: No questions provided', []);
 			}
 
 			// Normalize questions with defaults
 			const questions: Question[] = params.questions.map((q) => ({
 				questionTopic: q.questionTopic,
 				prompt: q.prompt,
-				type: q.type || "single",
+				type: q.type || 'single',
 				options: q.options,
 			}));
 
@@ -178,13 +183,13 @@ export default function question(pi: ExtensionAPI) {
 			for (let i = 0; i < questions.length; i++) {
 				const q = questions[i];
 				if (!q) continue;
-				if (q.type === "single") {
+				if (q.type === 'single') {
 					const recommendedCount = q.options.filter((o) => o.recommended).length;
 					if (recommendedCount > 1) {
 						return errorResult(
 							`Error: Question ${i + 1} is single-select but has ${recommendedCount} recommended options`,
 							{
-								code: "MULTIPLE_RECOMMENDED",
+								code: 'MULTIPLE_RECOMMENDED',
 								message: `Single-select question ${i + 1} has ${recommendedCount} recommended options, expected at most 1`,
 								questionIndex: i,
 								recommendedCount,
@@ -211,11 +216,21 @@ export default function question(pi: ExtensionAPI) {
 				// For multi-select: track which options are selected
 				const selectedOptions = new Map<number, Set<number>>();
 
-				// Initialize selected options with recommended
-				for (let i = 0; i < questions.length; i++) {
-					const q = questions[i];
+				// Sort options: recommended first, preserve order within groups
+				const sortedQuestions: Question[] = questions.map((q) => ({
+					...q,
+					options: [...q.options].sort((a, b) => {
+						if (a.recommended && !b.recommended) return -1;
+						if (!a.recommended && b.recommended) return 1;
+						return 0;
+					}),
+				}));
+
+				// Initialize selected options with recommended (using sorted indices)
+				for (let i = 0; i < sortedQuestions.length; i++) {
+					const q = sortedQuestions[i];
 					if (!q) continue;
-					if (q.type === "multi") {
+					if (q.type === 'multi') {
 						const selected = new Set<number>();
 						q.options.forEach((opt, idx) => {
 							if (opt.recommended) {
@@ -226,15 +241,28 @@ export default function question(pi: ExtensionAPI) {
 					}
 				}
 
+				// Find first recommended option index for cursor initialization
+				function getFirstRecommendedIndex(opts: QuestionOption[]): number {
+					for (let i = 0; i < opts.length; i++) {
+						if (opts[i].recommended) return i;
+					}
+					return 0;
+				}
+
+				// Initialize cursor to first recommended (or 0 if none)
+				if (questions[0]) {
+					optionIndex = getFirstRecommendedIndex(sortedQuestions[0].options);
+				}
+
 				// Editor for "Other" option and messages
 				const editorTheme: EditorTheme = {
-					borderColor: (s) => theme.fg("accent", s),
+					borderColor: (s) => theme.fg('accent', s),
 					selectList: {
-						selectedPrefix: (t) => theme.fg("accent", t),
-						selectedText: (t) => theme.fg("accent", t),
-						description: (t) => theme.fg("muted", t),
-						scrollInfo: (t) => theme.fg("dim", t),
-						noMatch: (t) => theme.fg("warning", t),
+						selectedPrefix: (t) => theme.fg('accent', t),
+						selectedText: (t) => theme.fg('accent', t),
+						description: (t) => theme.fg('muted', t),
+						scrollInfo: (t) => theme.fg('dim', t),
+						noMatch: (t) => theme.fg('warning', t),
 					},
 				};
 				const editor = new Editor(tui, editorTheme);
@@ -254,14 +282,19 @@ export default function question(pi: ExtensionAPI) {
 				}
 
 				function currentOptions(): RenderOption[] {
-					const q = currentQuestion();
+					const q = currentSortedQuestion();
 					if (!q) return [];
-					// Filter out any existing Other to prevent duplication
+					// Options are sorted by recommended in sortedQuestions (used for display)
 					const filteredOptions = q.options.filter((opt) => opt.value !== OTHER_VALUE);
 					const opts: RenderOption[] = [...filteredOptions];
-					// Other always available
+					// Other always available at the end
 					opts.push({ value: OTHER_VALUE, label: OTHER_LABEL, isOther: true });
 					return opts;
+				}
+
+				// Get sorted question (for UI purposes, always show recommended first)
+				function currentSortedQuestion(): Question | undefined {
+					return sortedQuestions[currentTab];
 				}
 
 				function allAnswered(): boolean {
@@ -273,13 +306,13 @@ export default function question(pi: ExtensionAPI) {
 
 				function isMultiSelect(): boolean {
 					const q = currentQuestion();
-					return q?.type === "multi";
+					return q?.type === 'multi';
 				}
 
 				function isOptionSelected(idx: number): boolean {
 					const q = currentQuestion();
 					if (!q) return false;
-					if (q.type === "multi") {
+					if (q.type === 'multi') {
 						return selectedOptions.get(currentTab)?.has(idx) ?? false;
 					}
 					return optionIndex === idx;
@@ -287,7 +320,7 @@ export default function question(pi: ExtensionAPI) {
 
 				function toggleOption(idx: number) {
 					const q = currentQuestion();
-					if (!q || q.type !== "multi") return;
+					if (!q || q.type !== 'multi') return;
 					const selected = selectedOptions.get(currentTab);
 					if (!selected) return;
 					if (selected.has(idx)) {
@@ -307,7 +340,9 @@ export default function question(pi: ExtensionAPI) {
 					} else {
 						currentTab = questions.length; // Submit tab
 					}
-					optionIndex = 0;
+					// Reset cursor to first recommended (or 0) on the new question
+					const nextQ = currentSortedQuestion();
+					optionIndex = nextQ ? getFirstRecommendedIndex(nextQ.options) : 0;
 					refresh();
 				}
 
@@ -345,9 +380,13 @@ export default function question(pi: ExtensionAPI) {
 					answers.set(questionIndex, answer);
 				}
 
-				function getSelectedValues(): { values: string[]; labels: string[]; wasCustom: boolean[] } {
+				function getSelectedValues(): {
+					values: string[];
+					labels: string[];
+					wasCustom: boolean[];
+				} {
 					const q = currentQuestion();
-					if (!q || q.type !== "multi") {
+					if (!q || q.type !== 'multi') {
 						return { values: [], labels: [], wasCustom: [] };
 					}
 					const selected = selectedOptions.get(currentTab);
@@ -371,7 +410,7 @@ export default function question(pi: ExtensionAPI) {
 				function showMessagePrompt(questionIndex: number, appended: boolean) {
 					pendingOther = { index: questionIndex, appended };
 					messageMode = true;
-					editor.setText("");
+					editor.setText('');
 					refresh();
 				}
 
@@ -381,7 +420,7 @@ export default function question(pi: ExtensionAPI) {
 					const q = questions[pendingOther.index];
 					if (!q) return;
 
-					if (q.type === "multi") {
+					if (q.type === 'multi') {
 						const { values, labels, wasCustom } = getSelectedValues();
 						if (pendingOther.appended) {
 							if (trimmedMsg) {
@@ -411,7 +450,7 @@ export default function question(pi: ExtensionAPI) {
 							saveSingleAnswer(
 								pendingOther.index,
 								NO_CHOICE,
-								"(no choice)",
+								'(no choice)',
 								false,
 								undefined,
 								undefined,
@@ -429,12 +468,12 @@ export default function question(pi: ExtensionAPI) {
 					const q = questions[pendingOther.index];
 					if (!q) return;
 
-					if (q.type === "multi") {
+					if (q.type === 'multi') {
 						const { values, labels, wasCustom } = getSelectedValues();
 						if (pendingOther.appended) {
 							if (values.length === 0) {
 								values.push(NO_CHOICE);
-								labels.push("(no choice)");
+								labels.push('(no choice)');
 								wasCustom.push(false);
 							}
 						}
@@ -443,7 +482,7 @@ export default function question(pi: ExtensionAPI) {
 						saveSingleAnswer(
 							pendingOther.index,
 							NO_CHOICE,
-							"(no choice)",
+							'(no choice)',
 							false,
 							undefined,
 							undefined,
@@ -471,7 +510,7 @@ export default function question(pi: ExtensionAPI) {
 						return; // Stay in input mode, user must type or Escape
 					}
 
-					if (q.type === "multi") {
+					if (q.type === 'multi') {
 						const { values, labels, wasCustom } = getSelectedValues();
 						values.push(OTHER_INPUT);
 						labels.push(trimmed);
@@ -490,7 +529,7 @@ export default function question(pi: ExtensionAPI) {
 
 					inputMode = false;
 					inputQuestionIndex = null;
-					editor.setText("");
+					editor.setText('');
 					advanceAfterAnswer();
 				};
 
@@ -499,7 +538,7 @@ export default function question(pi: ExtensionAPI) {
 						if (matchesKey(data, Key.escape)) {
 							pendingOther = null;
 							messageMode = false;
-							editor.setText("");
+							editor.setText('');
 							refresh();
 							return;
 						}
@@ -516,7 +555,7 @@ export default function question(pi: ExtensionAPI) {
 						if (matchesKey(data, Key.escape)) {
 							inputMode = false;
 							inputQuestionIndex = null;
-							editor.setText("");
+							editor.setText('');
 							refresh();
 							return;
 						}
@@ -532,13 +571,15 @@ export default function question(pi: ExtensionAPI) {
 					if (isMulti) {
 						if (matchesKey(data, Key.right)) {
 							currentTab = (currentTab + 1) % totalTabs;
-							optionIndex = 0;
+							const nextQ = currentSortedQuestion();
+							optionIndex = nextQ ? getFirstRecommendedIndex(nextQ.options) : 0;
 							refresh();
 							return;
 						}
 						if (matchesKey(data, Key.left)) {
 							currentTab = (currentTab - 1 + totalTabs) % totalTabs;
-							optionIndex = 0;
+							const prevQ = currentSortedQuestion();
+							optionIndex = prevQ ? getFirstRecommendedIndex(prevQ.options) : 0;
 							refresh();
 							return;
 						}
@@ -578,7 +619,7 @@ export default function question(pi: ExtensionAPI) {
 						if (opt.isOther) {
 							inputMode = true;
 							inputQuestionIndex = currentTab;
-							editor.setText("");
+							editor.setText('');
 							refresh();
 							return;
 						}
@@ -587,7 +628,7 @@ export default function question(pi: ExtensionAPI) {
 							const { values, labels, wasCustom } = getSelectedValues();
 							if (values.length === 0) {
 								values.push(NO_CHOICE);
-								labels.push("(no choice)");
+								labels.push('(no choice)');
 								wasCustom.push(false);
 							}
 							saveMultiAnswer(currentTab, values, labels, wasCustom, undefined);
@@ -595,13 +636,7 @@ export default function question(pi: ExtensionAPI) {
 							return;
 						}
 
-						saveSingleAnswer(
-							currentTab,
-							opt.value,
-							opt.label,
-							false,
-							optionIndex + 1,
-						);
+						saveSingleAnswer(currentTab, opt.value, opt.label, false, optionIndex + 1);
 						advanceAfterAnswer();
 						return;
 					}
@@ -636,32 +671,32 @@ export default function question(pi: ExtensionAPI) {
 
 					const add = (s: string) => lines.push(truncateToWidth(s, width));
 
-					add(theme.fg("accent", "─".repeat(width)));
+					add(theme.fg('accent', '─'.repeat(width)));
 
 					if (isMulti) {
-						const tabs: string[] = ["← "];
+						const tabs: string[] = ['← '];
 						for (let i = 0; i < questions.length; i++) {
 							const qAtIdx = questions[i];
 							if (!qAtIdx) continue;
 							const isActive = i === currentTab;
 							const isAnswered = answers.has(i);
-							const box = isAnswered ? "■" : "□";
-							const color = isAnswered ? "success" : "muted";
+							const box = isAnswered ? '■' : '□';
+							const color = isAnswered ? 'success' : 'muted';
 							const text = ` ${box} ${qAtIdx.questionTopic} `;
 							const styled = isActive
-								? theme.bg("selectedBg", theme.fg("text", text))
+								? theme.bg('selectedBg', theme.fg('text', text))
 								: theme.fg(color, text);
 							tabs.push(`${styled} `);
 						}
 						const canSubmit = allAnswered();
 						const isSubmitTab = currentTab === questions.length;
-						const submitText = " ✓ Submit ";
+						const submitText = ' ✓ Submit ';
 						const submitStyled = isSubmitTab
-							? theme.bg("selectedBg", theme.fg("text", submitText))
-							: theme.fg(canSubmit ? "success" : "dim", submitText);
+							? theme.bg('selectedBg', theme.fg('text', submitText))
+							: theme.fg(canSubmit ? 'success' : 'dim', submitText);
 						tabs.push(`${submitStyled} →`);
-						add(` ${tabs.join("")}`);
-						lines.push("");
+						add(` ${tabs.join('')}`);
+						lines.push('');
 					}
 
 					function renderOptions() {
@@ -675,124 +710,142 @@ export default function question(pi: ExtensionAPI) {
 
 							let prefix: string;
 							if (isMultiQ) {
-								const cursorMark = isCursor ? theme.fg("accent", ">") + " " : "  ";
-								const checkMark = selected ? theme.fg("accent", "☑") : theme.fg("muted", "☐");
-								prefix = cursorMark + checkMark + " ";
+								const cursorMark = isCursor ? theme.fg('accent', '>') + ' ' : '  ';
+								const checkMark = selected
+									? theme.fg('accent', '☑')
+									: theme.fg('muted', '☐');
+								prefix = cursorMark + checkMark + ' ';
 							} else {
-								prefix = isCursor ? theme.fg("accent", "> ● ") : theme.fg("muted", "  ○ ");
+								prefix = isCursor
+									? theme.fg('accent', '> ● ')
+									: theme.fg('muted', '  ○ ');
 							}
 
-							const selectedColor = selected ? "accent" : "text";
+							const selectedColor = selected ? 'accent' : 'text';
 							let labelText = `${i + 1}. ${opt.label}`;
 
 							if (isRecommended) {
-								labelText += ` ${theme.fg("success", "(Recommended)")}`;
+								labelText += ` ${theme.fg('success', '(Recommended)')}`;
 							}
 
 							if (isOther && inputMode) {
-								add(prefix + theme.fg("accent", labelText + " ✎"));
+								add(prefix + theme.fg('accent', labelText + ' ✎'));
 							} else {
 								add(prefix + theme.fg(selectedColor, labelText));
 							}
 							if (opt.description) {
-								add(`       ${theme.fg("muted", opt.description)}`);
+								add(`       ${theme.fg('muted', opt.description)}`);
 							}
 						}
 					}
 
 					if (inputMode && q) {
-						add(theme.fg("text", ` ${q.prompt}`));
-						lines.push("");
+						add(theme.fg('text', ` ${q.prompt}`));
+						lines.push('');
 						if (isMultiQ) {
 							const { labels } = getSelectedValues();
 							if (labels.length > 0) {
-								add(theme.fg("muted", ` Selected: ${labels.join(", ")}`));
-								lines.push("");
+								add(theme.fg('muted', ` Selected: ${labels.join(', ')}`));
+								lines.push('');
 							}
 						}
 						renderOptions();
-						lines.push("");
-						add(theme.fg("muted", " Your answer:"));
+						lines.push('');
+						add(theme.fg('muted', ' Your answer:'));
 						for (const line of editor.render(width - 2)) {
 							add(` ${line}`);
 						}
-						lines.push("");
-						add(theme.fg("dim", " Enter to submit • Esc to cancel"));
+						lines.push('');
+						add(theme.fg('dim', ' Enter to submit • Esc to cancel'));
 					} else if (messageMode && q) {
-						add(theme.fg("text", ` ${q.prompt}`));
-						lines.push("");
+						add(theme.fg('text', ` ${q.prompt}`));
+						lines.push('');
 
 						if (isMultiQ) {
 							const { labels } = getSelectedValues();
 							if (labels.length > 0) {
-								add(theme.fg("muted", ` Selected: `) + theme.fg("accent", labels.join(", ")));
+								add(
+									theme.fg('muted', ` Selected: `) +
+										theme.fg('accent', labels.join(', ')),
+								);
 							} else {
-								add(theme.fg("muted", ` No options selected`));
+								add(theme.fg('muted', ` No options selected`));
 							}
 						} else {
 							const selectedOpt = opts[optionIndex];
-							add(theme.fg("muted", ` Selected: `) + theme.fg("accent", selectedOpt?.label || ""));
+							add(
+								theme.fg('muted', ` Selected: `) +
+									theme.fg('accent', selectedOpt?.label || ''),
+							);
 						}
-						lines.push("");
-						add(theme.fg("muted", " Add note (optional):"));
+						lines.push('');
+						add(theme.fg('muted', ' Add note (optional):'));
 						for (const line of editor.render(width - 2)) {
 							add(` ${line}`);
 						}
-						lines.push("");
-						add(theme.fg("dim", " Enter save • Tab skip • Esc back"));
+						lines.push('');
+						add(theme.fg('dim', ' Enter save • Tab skip • Esc back'));
 					} else if (currentTab === questions.length) {
-						add(theme.fg("accent", theme.bold(" Ready to submit")));
-						lines.push("");
-							for (let i = 0; i < questions.length; i++) {
-								const question = questions[i];
-								if (!question) continue;
-								const answer = answers.get(i);
-								if (answer) {
-									if (question.type === "multi") {
+						add(theme.fg('accent', theme.bold(' Ready to submit')));
+						lines.push('');
+						for (let i = 0; i < questions.length; i++) {
+							const question = questions[i];
+							if (!question) continue;
+							const answer = answers.get(i);
+							if (answer) {
+								if (question.type === 'multi') {
 									const multiAnswer = answer as MultiAnswer;
-									const valuesStr = multiAnswer.labels.join(", ") || "(none)";
-									add(`${theme.fg("muted", ` ${question.questionTopic}: `)}${theme.fg("text", valuesStr)}`);
+									const valuesStr = multiAnswer.labels.join(', ') || '(none)';
+									add(
+										`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', valuesStr)}`,
+									);
 									if (multiAnswer.message) {
-										add(`     ${theme.fg("muted", `Note: "${multiAnswer.message}"`)}`);
+										add(
+											`     ${theme.fg('muted', `Note: "${multiAnswer.message}"`)}`,
+										);
 									}
 								} else {
 									const singleAnswer = answer as SingleAnswer;
-									const prefix = singleAnswer.wasCustom ? "(custom) " : "";
-									add(`${theme.fg("muted", ` ${question.questionTopic}: `)}${theme.fg("text", prefix + singleAnswer.label)}`);
+									const prefix = singleAnswer.wasCustom ? '(custom) ' : '';
+									add(
+										`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', prefix + singleAnswer.label)}`,
+									);
 									if (singleAnswer.message) {
-										add(`     ${theme.fg("muted", `Note: "${singleAnswer.message}"`)}`);
+										add(
+											`     ${theme.fg('muted', `Note: "${singleAnswer.message}"`)}`,
+										);
 									}
 								}
 							}
 						}
-						lines.push("");
+						lines.push('');
 						if (allAnswered()) {
-							add(theme.fg("success", " Press Enter to submit"));
+							add(theme.fg('success', ' Press Enter to submit'));
 						} else {
 							const missing = questions
 								.filter((_, i) => !answers.has(i))
 								.map((qq) => qq.questionTopic)
-								.join(", ");
-							add(theme.fg("warning", ` Unanswered: ${missing}`));
+								.join(', ');
+							add(theme.fg('warning', ` Unanswered: ${missing}`));
 						}
 					} else if (q) {
-						add(theme.fg("muted", ` ${q.prompt}`));
-						lines.push("");
+						add(theme.fg('muted', ` ${q.prompt}`));
+						lines.push('');
 						renderOptions();
 					}
 
-					lines.push("");
+					lines.push('');
 					if (!inputMode && !messageMode) {
 						const help = isMulti
 							? isMultiQ
-								? " ←→ navigate • ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel"
-								: " ←→ navigate • ↑↓ select • Tab↹ add note • Enter confirm • Esc cancel"
+								? ' ←→ navigate • ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
+								: ' ←→ navigate • ↑↓ select • Tab↹ add note • Enter confirm • Esc cancel'
 							: isMultiQ
-								? " ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel"
-								: " ↑↓ navigate • Enter select • Tab↹ add note • Esc cancel";
-						add(theme.fg("dim", help));
+								? ' ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
+								: ' ↑↓ navigate • Enter select • Tab↹ add note • Esc cancel';
+						add(theme.fg('dim', help));
 					}
-					add(theme.fg("accent", "─".repeat(width)));
+					add(theme.fg('accent', '─'.repeat(width)));
 
 					cachedLines = lines;
 					return lines;
@@ -808,8 +861,17 @@ export default function question(pi: ExtensionAPI) {
 			});
 
 			if (result.cancelled) {
+				ctx.abort();
+				pi.sendMessage(
+					{
+						customType: 'questionnaire-cancelled',
+						content: 'User did not answer the questions',
+						display: false,
+					},
+					{ deliverAs: 'nextTurn' },
+				);
 				return {
-					content: [{ type: "text", text: "User cancelled the question" }],
+					content: [{ type: 'text', text: 'User cancelled the question' }],
 					details: result,
 				};
 			}
@@ -824,9 +886,9 @@ export default function question(pi: ExtensionAPI) {
 				if (!answer) continue;
 
 				lines.push(`### ${q.prompt}`);
-				lines.push("");
+				lines.push('');
 
-				if (q.type === "multi") {
+				if (q.type === 'multi') {
 					const multiAnswer = answer as MultiAnswer;
 					for (const label of multiAnswer.labels) {
 						lines.push(`- [x] ${label}`);
@@ -839,11 +901,11 @@ export default function question(pi: ExtensionAPI) {
 					lines.push(`- ${singleAnswer.label}`);
 				}
 
-				lines.push("");
+				lines.push('');
 			}
 
 			return {
-				content: [{ type: "text", text: lines.join("\n") }],
+				content: [{ type: 'text', text: lines.join('\n') }],
 				details: result,
 			};
 		},
@@ -851,11 +913,11 @@ export default function question(pi: ExtensionAPI) {
 		renderCall(args, theme, _context) {
 			const qs = (args.questions as Question[]) || [];
 			const count = qs.length;
-			const topics = qs.map((q) => q.questionTopic).join(", ");
-			let text = theme.fg("toolTitle", theme.bold("question "));
-			text += theme.fg("muted", `${count} question${count !== 1 ? "s" : ""}`);
+			const topics = qs.map((q) => q.questionTopic).join(', ');
+			let text = theme.fg('toolTitle', theme.bold('question '));
+			text += theme.fg('muted', `${count} question${count !== 1 ? 's' : ''}`);
 			if (topics) {
-				text += theme.fg("dim", ` (${truncateToWidth(topics, 40)})`);
+				text += theme.fg('dim', ` (${truncateToWidth(topics, 40)})`);
 			}
 			return new Text(text, 0, 0);
 		},
@@ -864,10 +926,10 @@ export default function question(pi: ExtensionAPI) {
 			const details = result.details as QuestionnaireResult | undefined;
 			if (!details) {
 				const text = result.content[0];
-				return new Text(text?.type === "text" ? text.text : "", 0, 0);
+				return new Text(text?.type === 'text' ? text.text : '', 0, 0);
 			}
 			if (details.cancelled) {
-				return new Text(theme.fg("warning", "Cancelled"), 0, 0);
+				return new Text(theme.fg('warning', 'Cancelled'), 0, 0);
 			}
 
 			const lines: string[] = [];
@@ -878,9 +940,9 @@ export default function question(pi: ExtensionAPI) {
 				if (!answer) continue;
 
 				lines.push(`### ${q.prompt}`);
-				lines.push("");
+				lines.push('');
 
-				if (q.type === "multi") {
+				if (q.type === 'multi') {
 					const multiAnswer = answer as MultiAnswer;
 					for (const label of multiAnswer.labels) {
 						lines.push(`- [x] ${label}`);
@@ -893,10 +955,10 @@ export default function question(pi: ExtensionAPI) {
 					lines.push(`- ${singleAnswer.label}`);
 				}
 
-				lines.push("");
+				lines.push('');
 			}
 
-			return new Text(lines.join("\n"), 0, 0);
+			return new Text(lines.join('\n'), 0, 0);
 		},
 	});
 }
