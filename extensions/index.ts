@@ -82,6 +82,9 @@ const OTHER_LABEL = 'Other';
 const NO_CHOICE = '(no choice)';
 const OTHER_INPUT = '(other)';
 
+// Check for non-interactive mode (--print flag)
+const isNonInteractive = process.argv.includes('--print') || process.argv.includes('-p');
+
 // Schema
 const QuestionOptionSchema = Type.Object(
 	{
@@ -153,6 +156,11 @@ function validationError(
 }
 
 export default function question(pi: ExtensionAPI) {
+	// Skip tool registration in non-interactive mode (e.g., --print)
+	if (isNonInteractive) {
+		return;
+	}
+
 	pi.registerTool({
 		name: 'question',
 		label: 'Question',
