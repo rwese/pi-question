@@ -322,13 +322,32 @@ export default function question(pi: ExtensionAPI) {
 					return q?.type === 'multi';
 				}
 
-				function isOptionSelected(idx: number): boolean {
+				function isOptionSelected(displayIdx: number): boolean {
 					const q = currentQuestion();
 					if (!q) return false;
 					if (q.type === 'multi') {
-						return selectedOptions.get(currentTab)?.has(idx) ?? false;
+						const sortedQ = currentSortedQuestion();
+						if (!sortedQ) return false;
+						const opt = sortedQ.options[displayIdx];
+						if (!opt) return false;
+						const originalIndex = q.options.indexOf(opt);
+						if (originalIndex === -1) return false;
+						return selectedOptions.get(currentTab)?.has(originalIndex) ?? false;
 					}
-					return optionIndex === idx;
+					return optionIndex === displayIdx;
+				}
+
+				// Convert display index to sequential index for comments
+				function displayToSequentialIdx(displayIdx: number): number {
+					const q = currentQuestion();
+					const selected = selectedOptions.get(currentTab);
+					if (!q || !selected) return displayIdx;
+					let seq = 0;
+					for (const dIdx of selected) {
+						if (dIdx === displayIdx) return seq;
+						seq++;
+					}
+					return displayIdx; // fallback
 				}
 
 				function toggleOption(idx: number) {
@@ -519,17 +538,7 @@ export default function question(pi: ExtensionAPI) {
 								comments[Number(key)] = val;
 							}
 						}
-						// Build index mapping: display index -> sequential index
-						const q = currentQuestion();
-						const selected = selectedOptions.get(currentTab);
-						let sequentialIndex = 0;
-						const displayToSequential = new Map<number, number>();
-						if (q && selected) {
-							for (const displayIdx of selected) {
-								displayToSequential.set(displayIdx, sequentialIndex++);
-							}
-						}
-						const targetIndex = displayToSequential.get(commentOptionIndex) ?? commentOptionIndex;
+						const targetIndex = displayToSequentialIdx(commentOptionIndex);
 						if (trimmed) {
 							comments[targetIndex] = trimmed;
 						} else {
@@ -866,7 +875,7 @@ export default function question(pi: ExtensionAPI) {
 						lines.push('');
 						// Show existing comment if any
 						const existingAnswer = answers.get(currentTab) as MultiAnswer | undefined;
-						const existingComment = existingAnswer?.comments[commentOptionIndex!];
+						const existingComment = existingAnswer?.comments[displayToSequentialIdx(commentOptionIndex!)];
 						if (existingComment) {
 							add(theme.fg('muted', ` Current: ${existingComment}`));
 							lines.push('');
