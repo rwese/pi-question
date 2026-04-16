@@ -82,6 +82,7 @@ const OTHER_LABEL = 'Other';
 const NO_CHOICE = '(no choice)';
 const OTHER_INPUT = '(other)';
 
+/* global process */
 // Check for non-interactive mode (--print flag)
 const isNonInteractive = process.argv.includes('--print') || process.argv.includes('-p');
 
@@ -254,14 +255,16 @@ export default function question(pi: ExtensionAPI) {
 				// Find first recommended option index for cursor initialization
 				function getFirstRecommendedIndex(opts: QuestionOption[]): number {
 					for (let i = 0; i < opts.length; i++) {
-						if (opts[i].recommended) return i;
+						const opt = opts[i];
+						if (opt && opt.recommended) return i;
 					}
 					return 0;
 				}
 
 				// Initialize cursor to first recommended (or 0 if none)
-				if (questions[0]) {
-					optionIndex = getFirstRecommendedIndex(sortedQuestions[0].options);
+				const firstQuestion = questions[0];
+				if (firstQuestion) {
+					optionIndex = getFirstRecommendedIndex(firstQuestion.options);
 				}
 
 				// Editor for "Other" option and messages
@@ -439,13 +442,9 @@ export default function question(pi: ExtensionAPI) {
 								wasCustom.push(true);
 							}
 						}
-						saveMultiAnswer(
-							pendingOther.index,
-							values,
-							labels,
-							wasCustom,
-							trimmedMsg || undefined,
-						);
+						// Store message as comment on the question (index 0)
+						const comments: Record<number, string> = trimmedMsg ? { 0: trimmedMsg } : {};
+						saveMultiAnswer(pendingOther.index, values, labels, wasCustom, comments);
 					} else {
 						if (trimmedMsg) {
 							saveSingleAnswer(
@@ -514,11 +513,27 @@ export default function question(pi: ExtensionAPI) {
 					if (commentMode && commentOptionIndex !== null) {
 						const trimmed = value.trim();
 						const existingAnswer = answers.get(currentTab) as MultiAnswer | undefined;
-						const comments = existingAnswer?.comments ? { ...existingAnswer.comments } : {};
+						const comments: Record<number, string> = {};
+						if (existingAnswer?.comments) {
+							for (const [key, val] of Object.entries(existingAnswer.comments)) {
+								comments[Number(key)] = val;
+							}
+						}
+						// Build index mapping: display index -> sequential index
+						const q = currentQuestion();
+						const selected = selectedOptions.get(currentTab);
+						let sequentialIndex = 0;
+						const displayToSequential = new Map<number, number>();
+						if (q && selected) {
+							for (const displayIdx of selected) {
+								displayToSequential.set(displayIdx, sequentialIndex++);
+							}
+						}
+						const targetIndex = displayToSequential.get(commentOptionIndex) ?? commentOptionIndex;
 						if (trimmed) {
-							comments[commentOptionIndex] = trimmed;
+							comments[targetIndex] = trimmed;
 						} else {
-							delete comments[commentOptionIndex];
+							delete comments[targetIndex];
 						}
 						const { values, labels, wasCustom } = getSelectedValues();
 						saveMultiAnswer(currentTab, values, labels, wasCustom, comments);
@@ -572,7 +587,12 @@ export default function question(pi: ExtensionAPI) {
 							return;
 						}
 						if (matchesKey(data, Key.tab)) {
-							skipMessageAndSubmit();
+							const text = editor.getText();
+							if (text.trim()) {
+								submitPendingWithMessage(text);
+							} else {
+								skipMessageAndSubmit();
+							}
 							return;
 						}
 						editor.handleInput(data);
@@ -839,7 +859,7 @@ export default function question(pi: ExtensionAPI) {
 							add(` ${line}`);
 						}
 						lines.push('');
-						add(theme.fg('dim', ' Enter save • Tab skip • Esc back'));
+						add(theme.fg('dim', ' Enter/Tab save • Esc discard'));
 					} else if (commentMode && q) {
 						const optLabel = opts[commentOptionIndex!]?.label || '';
 						add(theme.fg('text', ` Add comment for: ${optLabel}`));

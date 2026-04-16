@@ -46,7 +46,7 @@ describe("Tool Registration", () => {
 
 		const registeredTool = (mockPi.registerTool as ReturnType<typeof vi.fn>).mock.calls[0][0];
 
-		expect(registeredTool).toHaveProperty("name", "questionnaire");
+		expect(registeredTool).toHaveProperty("name", "question");
 	});
 
 	it("registers tool with correct label", () => {
@@ -58,7 +58,7 @@ describe("Tool Registration", () => {
 
 		const registeredTool = (mockPi.registerTool as ReturnType<typeof vi.fn>).mock.calls[0][0];
 
-		expect(registeredTool).toHaveProperty("label", "Questionnaire");
+		expect(registeredTool).toHaveProperty("label", "Question");
 	});
 
 	it("registers tool with non-empty description", () => {
