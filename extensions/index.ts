@@ -150,7 +150,7 @@ function validationError(
 export default function question(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "question",
-		label: "Questionnaire",
+		label: "Question",
 		description:
 			"Collect user decisions through questions. Use when: gathering preferences, confirming configurations, clarifying ambiguous interpretations. Features: single/multiple choice, recommended defaults. Output: markdown.",
 		parameters: QuestionnaireParams,
