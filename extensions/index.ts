@@ -462,7 +462,9 @@ export default function question(pi: ExtensionAPI) {
 							}
 						}
 						// Store message as comment on the question (index 0)
-						const comments: Record<number, string> = trimmedMsg ? { 0: trimmedMsg } : {};
+						const comments: Record<number, string> = trimmedMsg
+							? { 0: trimmedMsg }
+							: {};
 						saveMultiAnswer(pendingOther.index, values, labels, wasCustom, comments);
 					} else {
 						if (trimmedMsg) {
@@ -875,7 +877,8 @@ export default function question(pi: ExtensionAPI) {
 						lines.push('');
 						// Show existing comment if any
 						const existingAnswer = answers.get(currentTab) as MultiAnswer | undefined;
-						const existingComment = existingAnswer?.comments[displayToSequentialIdx(commentOptionIndex!)];
+						const existingComment =
+							existingAnswer?.comments[displayToSequentialIdx(commentOptionIndex!)];
 						if (existingComment) {
 							add(theme.fg('muted', ` Current: ${existingComment}`));
 							lines.push('');
@@ -901,7 +904,9 @@ export default function question(pi: ExtensionAPI) {
 										`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', valuesStr)}`,
 									);
 									if (multiAnswer.comments) {
-										for (const [idx, comment] of Object.entries(multiAnswer.comments)) {
+										for (const [idx, comment] of Object.entries(
+											multiAnswer.comments,
+										)) {
 											const label = multiAnswer.labels[Number(idx)];
 											if (label) {
 												add(
