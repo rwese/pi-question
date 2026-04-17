@@ -433,7 +433,13 @@ export default function question(pi: ExtensionAPI) {
 				function showMessagePrompt(questionIndex: number, appended: boolean) {
 					pendingOther = { index: questionIndex, appended };
 					messageMode = true;
-					editor.setText('');
+					// Pre-populate editor with existing note if editing
+					const existingAnswer = answers.get(questionIndex);
+					if (existingAnswer && 'message' in existingAnswer && existingAnswer.message) {
+						editor.setText(existingAnswer.message);
+					} else {
+						editor.setText('');
+					}
 					refresh();
 				}
 
@@ -589,9 +595,10 @@ export default function question(pi: ExtensionAPI) {
 				function handleInput(data: string) {
 					if (messageMode) {
 						if (matchesKey(data, Key.escape)) {
+							// Keep the typed text in editor - user might come back
 							pendingOther = null;
 							messageMode = false;
-							editor.setText('');
+							// editor.setText('');  // Don't clear - preserve for potential edit
 							refresh();
 							return;
 						}
@@ -859,13 +866,25 @@ export default function question(pi: ExtensionAPI) {
 							}
 						} else {
 							const selectedOpt = opts[optionIndex];
+							// Check for saved note on this question
+							const savedAnswer = answers.get(currentTab);
+							let noteDisplay = '';
+							if (savedAnswer && 'message' in savedAnswer && savedAnswer.message) {
+								noteDisplay = ` ${theme.fg('success', `(note: "${savedAnswer.message}")`)}`;
+							}
 							add(
 								theme.fg('muted', ` Selected: `) +
-									theme.fg('accent', selectedOpt?.label || ''),
+									theme.fg('accent', selectedOpt?.label || '') +
+									noteDisplay,
 							);
 						}
 						lines.push('');
 						add(theme.fg('muted', ' Add note (optional):'));
+						// Show typed text (editor.getText()) and rendered content
+						const typedText = editor.getText();
+						if (typedText) {
+							add(` ${typedText}`);
+						}
 						for (const line of editor.render(width - 2)) {
 							add(` ${line}`);
 						}
