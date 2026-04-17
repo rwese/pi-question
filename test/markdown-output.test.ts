@@ -198,7 +198,6 @@ describe("Markdown Output", () => {
 						values: ["git", "docker", "tmux"],
 						labels: ["Git", "Docker", "tmux"],
 						wasCustom: [false, false, false],
-						comments: {},
 					}],
 					cancelled: false,
 				});
@@ -226,56 +225,10 @@ describe("Markdown Output", () => {
 			expect(markdown).toContain("- [x] tmux");
 		});
 
-		it("includes comments for multi-select items", async () => {
-			const mockPi = {
-				registerTool: vi.fn(),
-					registerCommand: vi.fn(),
-				sendMessage: vi.fn(),
-			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
-
-			questionnaire(mockPi);
-
-			const registeredTool = (mockPi.registerTool as ReturnType<typeof vi.fn>).mock.calls[0][0];
-
-			const mockCustom = vi.fn().mockImplementation(() => {
-				return Promise.resolve({
-					questions: [{ questionTopic: "Tools", prompt: "Select your tools", type: "multi", options: [] }],
-					answers: [{
-						values: ["git", "docker"],
-						labels: ["Git", "Docker"],
-						wasCustom: [false, false],
-						comments: { 0: "Version control essential", 1: "Containerization" },
-					}],
-					cancelled: false,
-				});
-			});
-
-			const result = await registeredTool.execute(
-				"call-id",
-				{
-					questions: [{
-						questionTopic: "Tools",
-						type: "multi",
-						prompt: "Select your tools",
-						options: [{ value: "git", label: "Git" }, { value: "docker", label: "Docker" }],
-					}],
-				},
-				new AbortController().signal,
-				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
-			);
-
-			const markdown = result.content[0].text;
-			expect(markdown).toContain("- [x] Git");
-			expect(markdown).toContain("- User Comment: Version control essential");
-			expect(markdown).toContain("- [x] Docker");
-			expect(markdown).toContain("User Comment: Containerization");
-		});
-
 		it("shows no selection for empty multi-select", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
-					registerCommand: vi.fn(),
+				registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -290,7 +243,6 @@ describe("Markdown Output", () => {
 						values: [],
 						labels: [],
 						wasCustom: [],
-						comments: {},
 					}],
 					cancelled: false,
 				});
@@ -334,7 +286,6 @@ describe("Markdown Output", () => {
 						values: ["typescript", "(other)"],
 						labels: ["TypeScript", "Zig"],
 						wasCustom: [false, true],
-						comments: {},
 					}],
 					cancelled: false,
 				});
@@ -381,7 +332,7 @@ describe("Markdown Output", () => {
 					],
 					answers: [
 						{ value: "go", label: "Go", wasCustom: false, index: 1 },
-						{ values: ["git", "docker"], labels: ["Git", "Docker"], wasCustom: [false, false], comments: {} },
+						{ values: ["git", "docker"], labels: ["Git", "Docker"], wasCustom: [false, false] },
 					],
 					cancelled: false,
 				});
@@ -574,7 +525,7 @@ describe("Markdown Output", () => {
 			const mockCustom = vi.fn().mockImplementation(() => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
-					answers: [{ values: ["git"], labels: ["Git"], wasCustom: [false], comments: {} }],
+					answers: [{ values: ["git"], labels: ["Git"], wasCustom: [false] }],
 					cancelled: false,
 				});
 			});
@@ -752,7 +703,6 @@ describe("renderResult", () => {
 						values: ["git", "docker"],
 						labels: ["Git", "Docker"],
 						wasCustom: [false, false],
-						comments: {},
 					}],
 					cancelled: false,
 				},
@@ -765,42 +715,10 @@ describe("renderResult", () => {
 			expect(rendered.text).toContain("- [x] Docker");
 		});
 
-		it("renders multi-select with comments", () => {
-			const mockPi = {
-				registerTool: vi.fn(),
-					registerCommand: vi.fn(),
-			} as unknown as { registerTool: (tool: unknown) => void };
-
-			questionnaire(mockPi);
-
-			const registeredTool = (mockPi.registerTool as ReturnType<typeof vi.fn>).mock.calls[0][0];
-
-			const result = {
-				content: [{ type: "text" as const, text: "test" }],
-				details: {
-					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
-					answers: [{
-						values: ["git"],
-						labels: ["Git"],
-						wasCustom: [false],
-						comments: { 0: "Essential for version control" },
-					}],
-					cancelled: false,
-				},
-			};
-
-			const rendered = registeredTool.renderResult(result, {}, mockTheme, {});
-
-			expect(rendered.text).toContain("### Select tools");
-			expect(rendered.text).toContain("- [x] Git");
-			expect(rendered.text).toContain("- User Comment:");
-			expect(rendered.text).toContain("Essential for version control");
-		});
-
 		it("renders empty multi-select as no selection", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
-					registerCommand: vi.fn(),
+				registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -815,7 +733,6 @@ describe("renderResult", () => {
 						values: [],
 						labels: [],
 						wasCustom: [],
-						comments: {},
 					}],
 					cancelled: false,
 				},

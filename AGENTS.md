@@ -32,6 +32,27 @@ docs/prds/          # PRD documentation
 - Use `Record<number, string>` for option-indexed maps
 - Interface naming: `QuestionOption`, `SingleAnswer`, `MultiAnswer`
 
+### Examples
+
+**Option-indexed maps:**
+```typescript
+const labels: Record<number, string> = { 0: "A", 1: "B" };
+```
+
+**Answer interfaces:**
+```typescript
+interface SingleAnswer { optionIndex: number; }
+interface MultiAnswer { optionIndices: number[]; }
+```
+
+**Mock pattern:**
+```typescript
+vi.mock("@mariozechner/pi-tui", async () => {
+  const mock = await import("./mocks/pi-tui.mock");
+  return mock;
+});
+```
+
 ## Git Workflow
 
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`
