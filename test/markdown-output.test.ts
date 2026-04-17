@@ -104,6 +104,12 @@ describe("Markdown Output", () => {
 			const markdown = result.content[0].text;
 			expect(markdown).toContain("### Choose your language");
 			expect(markdown).toContain("- Python");
+			// Should NOT contain "(custom)" prefix - label IS the user's input
+			expect(markdown).not.toContain("(custom)");
+			// Should NOT contain User Comment line
+			expect(markdown).not.toContain("User Comment");
+			// Message is stored in details
+			expect(result.details.answers[0]).toHaveProperty("message", "Python");
 		});
 
 		it("stores message in single-select answer but does not show in markdown output", async () => {

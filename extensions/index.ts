@@ -1030,7 +1030,6 @@ export default function question(pi: ExtensionAPI) {
 					const singleAnswer = answer as SingleAnswer;
 					lines.push(`- ${singleAnswer.label}`);
 					if (singleAnswer.message) {
-						lines.push(`  - User Comment: ${singleAnswer.message}`);
 					}
 				}
 
@@ -1087,7 +1086,6 @@ export default function question(pi: ExtensionAPI) {
 					const singleAnswer = answer as SingleAnswer;
 					lines.push(`- ${singleAnswer.label}`);
 					if (singleAnswer.message) {
-						lines.push(`  - User Comment: ${singleAnswer.message}`);
 					}
 				}
 
