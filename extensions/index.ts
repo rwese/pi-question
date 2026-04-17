@@ -1209,4 +1209,393 @@ export default function question(pi: ExtensionAPI) {
 			return new Text(lines.join('\n'), 0, 0);
 		},
 	});
+
+	// Register test command: /question:test
+	pi.registerCommand('question:test', {
+		description: 'Run a standardized test questionnaire. Usage: /question:test',
+		handler: async (_args, ctx) => {
+			if (!ctx.hasUI) {
+				ctx.ui.notify('UI not available', 'error');
+				return;
+			}
+
+			const testQuestions: Question[] = [
+				{
+					questionTopic: 'Language',
+					prompt: 'What is your preferred programming language?',
+					type: 'single',
+					options: [
+						{ value: 'go', label: 'Go', description: 'Fast, compiled, concurrent' },
+						{ value: 'rust', label: 'Rust', description: 'Safe, fast, zero-cost abstractions' },
+						{ value: 'typescript', label: 'TypeScript', description: 'JavaScript with types' },
+						{ value: 'python', label: 'Python', description: 'Simple and readable' },
+					],
+				},
+				{
+					questionTopic: 'Tools',
+					prompt: 'Which development tools do you use?',
+					type: 'multi',
+					options: [
+						{ value: 'vscode', label: 'VS Code', recommended: true },
+						{ value: 'vim', label: 'Vim/Neovim' },
+						{ value: 'jetbrains', label: 'JetBrains IDEs' },
+						{ value: 'zed', label: 'Zed' },
+					],
+				},
+				{
+					questionTopic: 'OS',
+					prompt: 'What operating system do you primarily develop on?',
+					type: 'single',
+					options: [
+						{ value: 'macos', label: 'macOS' },
+						{ value: 'linux', label: 'Linux' },
+						{ value: 'windows', label: 'Windows' },
+						{ value: 'wsl', label: 'WSL/Linux on Windows' },
+					],
+				},
+				{
+					questionTopic: 'Workflow',
+					prompt: 'How do you prefer to manage your development workflow?',
+					type: 'multi',
+					options: [
+						{ value: 'tmux', label: 'tmux', description: 'Terminal multiplexer', recommended: true },
+						{ value: 'docker', label: 'Docker', description: 'Containerization' },
+						{ value: 'git', label: 'Git', description: 'Version control' },
+						{ value: 'make', label: 'Makefiles', description: 'Build automation' },
+					],
+				},
+			];
+
+			const result = await ctx.ui.custom<QuestionnaireResult>((tui, theme, _kb, done) => {
+				let currentTab = 0;
+				let optionIndex = 0;
+				let inputMode = false;
+				let cachedLines: string[] | undefined;
+				const answers = new Map<number, Answer>();
+				const selectedOptions = new Map<number, Set<number>>();
+				let repromptMode = false;
+				let repromptMessage = '';
+
+				const sortedQuestions: Question[] = testQuestions.map((q) => ({
+					...q,
+					options: [...q.options].sort((a, b) => {
+						if (a.recommended && !b.recommended) return -1;
+						if (!a.recommended && b.recommended) return 1;
+						return 0;
+					}),
+				}));
+
+				for (let i = 0; i < sortedQuestions.length; i++) {
+					const q = sortedQuestions[i];
+					if (q && q.type === 'multi') {
+						const selected = new Set<number>();
+						q.options.forEach((opt, idx) => {
+							if (opt.recommended) selected.add(idx);
+						});
+						selectedOptions.set(i, selected);
+					}
+				}
+
+				const totalTabs = testQuestions.length + 1;
+				const editor = new Editor(tui, {
+					borderColor: (s) => theme.fg('accent', s),
+					selectList: {
+						selectedPrefix: (t) => theme.fg('accent', t),
+						selectedText: (t) => theme.fg('accent', t),
+						description: (t) => theme.fg('muted', t),
+						scrollInfo: (t) => theme.fg('dim', t),
+						noMatch: (t) => theme.fg('warning', t),
+					},
+				});
+
+				function refresh() {
+					cachedLines = undefined;
+					tui.requestRender();
+				}
+
+				function hasAnyAnswer() {
+					return answers.size > 0;
+				}
+
+				function allAnswered() {
+					for (let i = 0; i < testQuestions.length; i++) {
+						if (!answers.has(i)) return false;
+					}
+					return true;
+				}
+
+				function currentOptions(): (QuestionOption & { isOther?: boolean })[] {
+					const q = sortedQuestions[currentTab];
+					if (!q) return [];
+					const filtered = q.options.filter((o) => o.value !== OTHER_VALUE);
+					return [...filtered, { value: OTHER_VALUE, label: OTHER_LABEL, isOther: true }];
+				}
+
+				function isOptionSelected(idx: number) {
+					const q = testQuestions[currentTab];
+					if (!q) return false;
+					if (q.type === 'multi') {
+						return selectedOptions.get(currentTab)?.has(idx) ?? false;
+					}
+					return optionIndex === idx;
+				}
+
+				function handleInput(data: string) {
+					if (inputMode) {
+						if (matchesKey(data, Key.escape)) {
+							inputMode = false;
+							editor.setText('');
+							refresh();
+							return;
+						}
+						editor.handleInput(data);
+						refresh();
+						return;
+					}
+
+					if (matchesKey(data, Key.right) && currentTab < totalTabs - 1) {
+						if (currentTab === testQuestions.length && !hasAnyAnswer()) {
+							repromptMode = true;
+							repromptMessage = 'You must answer at least one question before submitting';
+							refresh();
+							return;
+						}
+						currentTab++;
+						optionIndex = 0;
+						refresh();
+						return;
+					}
+					if (matchesKey(data, Key.left) && currentTab > 0) {
+						currentTab--;
+						optionIndex = 0;
+						refresh();
+						return;
+					}
+
+					if (currentTab === testQuestions.length) {
+						if (repromptMode) {
+							repromptMode = false;
+							currentTab = 0;
+							optionIndex = 0;
+							refresh();
+							return;
+						}
+						if (matchesKey(data, Key.enter) && allAnswered()) {
+							done({ questions: testQuestions, answers: Array.from(answers.values()), cancelled: false });
+						}
+						if (matchesKey(data, Key.escape)) {
+							done({ questions: testQuestions, answers: [], cancelled: true });
+						}
+						return;
+					}
+
+					if (matchesKey(data, Key.up)) {
+						optionIndex = Math.max(0, optionIndex - 1);
+						refresh();
+						return;
+					}
+					if (matchesKey(data, Key.down)) {
+						optionIndex = Math.min(currentOptions().length - 1, optionIndex + 1);
+						refresh();
+						return;
+					}
+					if (matchesKey(data, Key.space)) {
+						const q = testQuestions[currentTab];
+						if (q && q.type === 'multi') {
+							const selected = selectedOptions.get(currentTab);
+							if (selected) {
+								if (selected.has(optionIndex)) selected.delete(optionIndex);
+								else selected.add(optionIndex);
+								refresh();
+							}
+							return;
+						}
+					}
+					if (matchesKey(data, Key.enter)) {
+						const opts = currentOptions();
+						const opt = opts[optionIndex];
+						if (!opt) return;
+
+						if (opt.isOther) {
+							inputMode = true;
+							editor.setText('');
+							refresh();
+							return;
+						}
+
+						const q = testQuestions[currentTab];
+						if (q) {
+							if (q.type === 'multi') {
+								const selected = selectedOptions.get(currentTab) || new Set();
+								answers.set(currentTab, {
+									values: Array.from(selected).map((i) => q.options[i]?.value || ''),
+									labels: Array.from(selected).map((i) => q.options[i]?.label || ''),
+									wasCustom: Array.from(selected).map(() => false),
+									comments: {},
+								});
+							} else {
+								answers.set(currentTab, {
+									value: opt.value,
+									label: opt.label,
+									wasCustom: false,
+									index: optionIndex + 1,
+								});
+							}
+						}
+
+						if (currentTab < testQuestions.length - 1) {
+							currentTab++;
+							optionIndex = 0;
+						} else {
+							currentTab = testQuestions.length;
+						}
+						refresh();
+						return;
+					}
+
+					if (matchesKey(data, Key.escape)) {
+						done({ questions: testQuestions, answers: [], cancelled: true });
+					}
+				}
+
+				function render(width: number): string[] {
+					if (cachedLines) return cachedLines;
+					const lines: string[] = [];
+					const add = (s: string) => lines.push(truncateToWidth(s, width));
+					const q = testQuestions[currentTab];
+					const opts = currentOptions();
+
+					add(theme.fg('accent', '─'.repeat(width)));
+
+					// Tabs
+					const tabs: string[] = ['← '];
+					for (let i = 0; i < testQuestions.length; i++) {
+						const qq = testQuestions[i];
+						if (!qq) continue;
+						const isActive = i === currentTab;
+						const isAnswered = answers.has(i);
+						const box = isAnswered ? '■' : '□';
+						const text = ` ${box} ${qq.questionTopic} `;
+						const styled = isActive
+							? theme.bg('selectedBg', theme.fg('text', text))
+							: theme.fg(isAnswered ? 'success' : 'muted', text);
+						tabs.push(`${styled} `);
+					}
+					const isSubmitTab = currentTab === testQuestions.length;
+					const canSubmit = allAnswered();
+					const submitText = ' ✓ Submit ';
+					const submitStyled = isSubmitTab
+						? theme.bg('selectedBg', theme.fg('text', submitText))
+						: theme.fg(canSubmit ? 'success' : 'dim', submitText);
+					tabs.push(`${submitStyled} →`);
+					add(` ${tabs.join('')}`);
+					lines.push('');
+
+					if (currentTab === testQuestions.length) {
+						if (repromptMode) {
+							add(theme.fg('warning', ` ⚠ ${repromptMessage}`));
+							lines.push('');
+							add(theme.fg('muted', ' Press any key to continue answering questions...'));
+						} else {
+							add(theme.fg('accent', theme.bold(' Ready to submit')));
+							lines.push('');
+							for (let i = 0; i < testQuestions.length; i++) {
+								const qq = testQuestions[i];
+								if (!qq) continue;
+								const answer = answers.get(i);
+								if (answer) {
+									if ('values' in answer) {
+										add(`${theme.fg('muted', ` ${qq.questionTopic}: `)}${theme.fg('text', answer.labels.join(', '))}`);
+									} else {
+										add(`${theme.fg('muted', ` ${qq.questionTopic}: `)}${theme.fg('text', answer.label)}`);
+									}
+								}
+							}
+							lines.push('');
+							if (allAnswered()) {
+								add(theme.fg('success', ' Press Enter to submit'));
+							} else {
+								const missing = testQuestions.filter((_, i) => !answers.has(i)).map((qq) => qq.questionTopic).join(', ');
+								add(theme.fg('warning', ` Unanswered: ${missing}`));
+							}
+						}
+					} else if (q) {
+						add(theme.fg('muted', ` ${q.prompt}`));
+						lines.push('');
+						for (let i = 0; i < opts.length; i++) {
+							const opt = opts[i];
+							if (!opt) continue;
+							const selected = isOptionSelected(i);
+							const isCursor = i === optionIndex;
+							const isOther = opt.isOther === true;
+
+							let prefix: string;
+							if (q.type === 'multi') {
+								const cursorMark = isCursor ? theme.fg('accent', '>') + ' ' : '  ';
+								const checkMark = selected ? theme.fg('accent', '☑') : theme.fg('muted', '☐');
+								prefix = cursorMark + checkMark + ' ';
+							} else {
+								prefix = isCursor ? theme.fg('accent', '> ● ') : theme.fg('muted', '  ○ ');
+							}
+
+							let labelText = `${i + 1}. ${opt.label}`;
+							if (!isOther && opt.recommended) {
+								labelText += ` ${theme.fg('success', '(Recommended)')}`;
+							}
+							add(prefix + theme.fg(selected ? 'accent' : 'text', labelText));
+							if (opt.description) {
+								add(`       ${theme.fg('muted', opt.description)}`);
+							}
+						}
+					}
+
+					lines.push('');
+					if (repromptMode) {
+						add(theme.fg('warning', ' ↑↓←→ Answer a question • Esc cancel'));
+					} else {
+						const isMultiQ = q?.type === 'multi';
+						const help = isMultiQ
+							? ' ←→ navigate • ↑↓ select • Space☐ toggle • Enter confirm • Esc cancel'
+							: ' ←→ navigate • ↑↓ select • Enter confirm • Esc cancel';
+						add(theme.fg('dim', help));
+					}
+					add(theme.fg('accent', '─'.repeat(width)));
+
+					cachedLines = lines;
+					return lines;
+				}
+
+				return { render, invalidate: () => { cachedLines = undefined; }, handleInput };
+			});
+
+			if (result.cancelled) {
+				ctx.ui.notify('Test questionnaire cancelled', 'info');
+				return;
+			}
+
+			// Format results
+			const outputLines: string[] = [];
+			for (let i = 0; i < testQuestions.length; i++) {
+				const qq = testQuestions[i];
+				if (!qq) continue;
+				const answer = result.answers[i];
+				if (!answer) continue;
+
+				outputLines.push(`### ${qq.prompt}`);
+				outputLines.push('');
+
+				if (qq.type === 'multi' && 'values' in answer) {
+					for (const label of answer.labels) {
+						outputLines.push(`- [x] ${label}`);
+					}
+					if (answer.labels.length === 0) outputLines.push(`- (no selection)`);
+				} else if ('value' in answer) {
+					outputLines.push(`- ${answer.label}`);
+				}
+				outputLines.push('');
+			}
+
+			ctx.ui.notify(outputLines.join('\n'), 'info');
+		},
+	});
 }

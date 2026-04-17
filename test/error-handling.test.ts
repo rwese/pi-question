@@ -40,6 +40,7 @@ describe("Error Handling v2", () => {
 		it("returns error for empty questions array", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -69,6 +70,7 @@ describe("Error Handling v2", () => {
 		it("returns MULTIPLE_RECOMMENDED error for single-select with multiple recommended", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -105,6 +107,7 @@ describe("Error Handling v2", () => {
 		it("allows multi-select with multiple recommended (pre-selects all)", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -147,6 +150,7 @@ describe("Error Handling v2", () => {
 		it("returns error when hasUI is false", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -170,6 +174,7 @@ describe("Error Handling v2", () => {
 		it("handles single question with single option", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -204,6 +209,7 @@ describe("Error Handling v2", () => {
 		it("handles multi-select with no recommended", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -242,6 +248,7 @@ describe("Error Handling v2", () => {
 		it("handles unicode in option values and labels", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);

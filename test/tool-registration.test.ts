@@ -38,6 +38,7 @@ describe("Tool Registration", () => {
 	it("registers tool with correct name", () => {
 		const mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 		} as unknown as { registerTool: (tool: unknown) => void };
 
 		questionnaire(mockPi);
@@ -52,6 +53,7 @@ describe("Tool Registration", () => {
 	it("registers tool with correct label", () => {
 		const mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 		} as unknown as { registerTool: (tool: unknown) => void };
 
 		questionnaire(mockPi);
@@ -64,6 +66,7 @@ describe("Tool Registration", () => {
 	it("registers tool with non-empty description", () => {
 		const mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 		} as unknown as { registerTool: (tool: unknown) => void };
 
 		questionnaire(mockPi);
@@ -78,6 +81,7 @@ describe("Tool Registration", () => {
 	it("registers tool with parameters schema", () => {
 		const mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 		} as unknown as { registerTool: (tool: unknown) => void };
 
 		questionnaire(mockPi);
@@ -91,6 +95,7 @@ describe("Tool Registration", () => {
 	it("registers tool with execute function", () => {
 		const mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 		} as unknown as { registerTool: (tool: unknown) => void };
 
 		questionnaire(mockPi);
@@ -104,6 +109,7 @@ describe("Tool Registration", () => {
 	it("registers tool with renderCall function", () => {
 		const mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 		} as unknown as { registerTool: (tool: unknown) => void };
 
 		questionnaire(mockPi);
@@ -117,6 +123,7 @@ describe("Tool Registration", () => {
 	it("registers tool with renderResult function", () => {
 		const mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 		} as unknown as { registerTool: (tool: unknown) => void };
 
 		questionnaire(mockPi);
@@ -130,6 +137,7 @@ describe("Tool Registration", () => {
 	it("execute returns error when no UI available", async () => {
 		const mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 		} as unknown as { registerTool: (tool: unknown) => void };
 
 		questionnaire(mockPi);
@@ -152,6 +160,7 @@ describe("Tool Registration", () => {
 	it("execute returns error when no questions provided", async () => {
 		const mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 		} as unknown as { registerTool: (tool: unknown) => void };
 
 		questionnaire(mockPi);

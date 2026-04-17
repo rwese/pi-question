@@ -48,6 +48,7 @@ describe("Navigation - Must Answer Requirement", () => {
 	beforeEach(() => {
 		mockPi = {
 			registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			sendMessage: vi.fn(),
 		};
 
@@ -79,7 +80,7 @@ describe("Navigation - Must Answer Requirement", () => {
 		it("advances only when Enter is pressed with an option selected", async () => {
 			// This tests the expected behavior: Enter confirms current selection
 			// The UI component requires Enter to advance - Tab only enters message mode
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
@@ -106,7 +107,7 @@ describe("Navigation - Must Answer Requirement", () => {
 
 		it("single-select advances on Enter with current option", async () => {
 			// This tests the expected behavior: Enter confirms current selection
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
@@ -137,7 +138,7 @@ describe("Navigation - Must Answer Requirement", () => {
 
 	describe("Multi-Select: Must Select to Proceed", () => {
 		it("advances on Enter only when options are selected", async () => {
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
@@ -162,7 +163,7 @@ describe("Navigation - Must Answer Requirement", () => {
 		});
 
 		it("advances on Enter when no options selected - adds (no choice)", async () => {
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
@@ -189,7 +190,7 @@ describe("Navigation - Must Answer Requirement", () => {
 
 	describe("Multi-Question: Must Complete Each Question", () => {
 		it("requires all questions to be answered before submit", async () => {
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
@@ -225,7 +226,7 @@ describe("Navigation - Must Answer Requirement", () => {
 		});
 
 		it("cannot submit with unanswered questions", async () => {
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
@@ -265,7 +266,7 @@ describe("Navigation - Must Answer Requirement", () => {
 
 	describe("Tab Navigation: Cannot Skip with Tab", () => {
 		it("Tab does not skip questions - it enters message mode", async () => {
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
@@ -323,7 +324,7 @@ describe("Navigation - Must Answer Requirement", () => {
 
 	describe("Escape Cancels Entire Questionnaire", () => {
 		it("Escape cancels the entire questionnaire", async () => {
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
@@ -350,7 +351,7 @@ describe("Navigation - Must Answer Requirement", () => {
 
 	describe("Reprompt on Submit Without Answers", () => {
 		it("cannot RIGHT away from submit tab without answering any questions", async () => {
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
@@ -396,7 +397,7 @@ describe("Navigation - Must Answer Requirement", () => {
 		});
 
 		it("preserves answers when navigating after having answered at least one", async () => {
-			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn() };
+			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 

@@ -40,6 +40,7 @@ describe("Markdown Output", () => {
 		it("generates correct markdown for single-select answer", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -74,6 +75,7 @@ describe("Markdown Output", () => {
 		it("generates correct markdown for custom single-select answer", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -109,6 +111,7 @@ describe("Markdown Output", () => {
 			// The message field is used in the UI review screen, not the markdown result
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -144,6 +147,7 @@ describe("Markdown Output", () => {
 		it("uses default type single when type not specified", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -179,6 +183,7 @@ describe("Markdown Output", () => {
 		it("generates correct markdown with checkboxes for multi-select", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -224,6 +229,7 @@ describe("Markdown Output", () => {
 		it("includes comments for multi-select items", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -269,6 +275,7 @@ describe("Markdown Output", () => {
 		it("shows no selection for empty multi-select", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -312,6 +319,7 @@ describe("Markdown Output", () => {
 		it("handles mixed custom and standard options in multi-select", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -357,6 +365,7 @@ describe("Markdown Output", () => {
 		it("generates correct markdown for multiple questions", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -402,6 +411,7 @@ describe("Markdown Output", () => {
 		it("maintains question order in markdown output", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -453,6 +463,7 @@ describe("Markdown Output", () => {
 		it("calls abort and returns cancelled message when user cancels", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -485,6 +496,7 @@ describe("Markdown Output", () => {
 		it("calls sendMessage with questionnaire-cancelled custom type", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -519,6 +531,7 @@ describe("Markdown Output", () => {
 		it("includes questions in result details", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -550,6 +563,7 @@ describe("Markdown Output", () => {
 		it("includes answers in result details", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -583,6 +597,7 @@ describe("Markdown Output", () => {
 		it("handles special characters in labels", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -614,6 +629,7 @@ describe("Markdown Output", () => {
 		it("handles empty prompt gracefully", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -665,6 +681,7 @@ describe("renderResult", () => {
 		it("renders single-select answer", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -691,6 +708,7 @@ describe("renderResult", () => {
 			// Single-answer message is stored but NOT displayed in renderResult
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -719,6 +737,7 @@ describe("renderResult", () => {
 		it("renders multi-select with checkboxes", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -749,6 +768,7 @@ describe("renderResult", () => {
 		it("renders multi-select with comments", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -780,6 +800,7 @@ describe("renderResult", () => {
 		it("renders empty multi-select as no selection", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -811,6 +832,7 @@ describe("renderResult", () => {
 		it("returns Cancelled text for cancelled results", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -839,6 +861,7 @@ describe("renderResult", () => {
 		it("returns content text when no details", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);

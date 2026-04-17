@@ -56,6 +56,7 @@ describe("Message Feature v2", () => {
 		it("single-select answer with message", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -116,6 +117,7 @@ describe("Message Feature v2", () => {
 		it("multi-select answer has values, labels, wasCustom arrays and comments", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -168,6 +170,7 @@ describe("Message Feature v2", () => {
 		it("multi-select output shows checkbox list with comments", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -221,6 +224,7 @@ describe("Message Feature v2", () => {
 		it("renderResult shows markdown sections for single-select", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -257,6 +261,7 @@ describe("Message Feature v2", () => {
 		it("renderResult shows checkbox list for multi-select with comments", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
+					registerCommand: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
