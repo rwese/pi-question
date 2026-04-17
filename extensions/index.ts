@@ -82,6 +82,9 @@ const OTHER_LABEL = 'Other';
 const NO_CHOICE = '(no choice)';
 const OTHER_INPUT = '(other)';
 
+// Debug mode: set QUESTION_DEBUG=1 to enable verbose JSON output
+const DEBUG = process.env.QUESTION_DEBUG === '1';
+
 /* global process */
 // Check for non-interactive mode (--print flag)
 const isNonInteractive = process.argv.includes('--print') || process.argv.includes('-p');
@@ -223,6 +226,8 @@ export default function question(pi: ExtensionAPI) {
 				let messageMode = false;
 				let commentMode = false;
 				let commentOptionIndex: number | null = null;
+				let repromptMode = false;
+				let repromptMessage = '';
 
 				// For multi-select: track which options are selected
 				const selectedOptions = new Map<number, Set<number>>();
@@ -315,6 +320,10 @@ export default function question(pi: ExtensionAPI) {
 						if (!answers.has(i)) return false;
 					}
 					return true;
+				}
+
+				function hasAnyAnswer(): boolean {
+					return answers.size > 0;
 				}
 
 				function isMultiSelect(): boolean {
@@ -678,6 +687,13 @@ export default function question(pi: ExtensionAPI) {
 
 					if (isMulti) {
 						if (matchesKey(data, Key.right)) {
+							if (currentTab === questions.length && !hasAnyAnswer()) {
+								// Cannot navigate away from submit tab without answering at least one question
+								repromptMode = true;
+								repromptMessage = 'You must answer at least one question before submitting';
+								refresh();
+								return;
+							}
 							currentTab = (currentTab + 1) % totalTabs;
 							const nextQ = currentSortedQuestion();
 							optionIndex = nextQ ? getFirstRecommendedIndex(nextQ.options) : 0;
@@ -694,6 +710,27 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					if (currentTab === questions.length) {
+						// Exit reprompt mode on any key - go back to last unanswered question
+						if (repromptMode) {
+							repromptMode = false;
+							repromptMessage = '';
+							// Go back to first unanswered question (or last question if all answered)
+							let targetTab = 0;
+							for (let i = 0; i < questions.length; i++) {
+								if (!answers.has(i)) {
+									targetTab = i;
+									break;
+								}
+								if (i === questions.length - 1) {
+									targetTab = i; // All answered, stay on last
+								}
+							}
+							currentTab = targetTab;
+							const prevQ = currentSortedQuestion();
+							optionIndex = prevQ ? getFirstRecommendedIndex(prevQ.options) : 0;
+							refresh();
+							return;
+						}
 						if (matchesKey(data, Key.enter) && allAnswered()) {
 							submit(false);
 						} else if (matchesKey(data, Key.escape)) {
@@ -925,54 +962,67 @@ export default function question(pi: ExtensionAPI) {
 						lines.push('');
 						add(theme.fg('dim', ' Enter save • Esc cancel'));
 					} else if (currentTab === questions.length) {
-						add(theme.fg('accent', theme.bold(' Ready to submit')));
-						lines.push('');
-						for (let i = 0; i < questions.length; i++) {
-							const question = questions[i];
-							if (!question) continue;
-							const answer = answers.get(i);
-							if (answer) {
-								if (question.type === 'multi') {
-									const multiAnswer = answer as MultiAnswer;
-									const valuesStr = multiAnswer.labels.join(', ') || '(none)';
-									add(
-										`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', valuesStr)}`,
-									);
-									if (multiAnswer.comments) {
-										for (const [idx, comment] of Object.entries(
-											multiAnswer.comments,
-										)) {
-											const label = multiAnswer.labels[Number(idx)];
-											if (label) {
-												add(
-													`     ${theme.fg('muted', `Comment on "${label}": "${comment}"`)}`,
-												);
+						if (repromptMode) {
+							add(theme.fg('warning', ` ⚠ ${repromptMessage}`));
+							lines.push('');
+							add(theme.fg('muted', ' Press any key to continue answering questions...'));
+							lines.push('');
+							lines.push('');
+							add(theme.fg('accent', theme.bold(' Answers so far:')));
+							lines.push('');
+							if (answers.size === 0) {
+								add(theme.fg('muted', ' (no questions answered yet)'));
+							}
+						} else {
+							add(theme.fg('accent', theme.bold(' Ready to submit')));
+							lines.push('');
+							for (let i = 0; i < questions.length; i++) {
+								const question = questions[i];
+								if (!question) continue;
+								const answer = answers.get(i);
+								if (answer) {
+									if (question.type === 'multi') {
+										const multiAnswer = answer as MultiAnswer;
+										const valuesStr = multiAnswer.labels.join(', ') || '(none)';
+											add(
+												`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', valuesStr)}`,
+											);
+										if (multiAnswer.comments) {
+											for (const [idx, comment] of Object.entries(
+												multiAnswer.comments,
+											)) {
+												const label = multiAnswer.labels[Number(idx)];
+												if (label) {
+													add(
+														`     ${theme.fg('muted', `Comment on "${label}": "${comment}"`)}`,
+														);
+												}
 											}
 										}
-									}
-								} else {
-									const singleAnswer = answer as SingleAnswer;
-									const prefix = singleAnswer.wasCustom ? '(custom) ' : '';
-									add(
-										`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', prefix + singleAnswer.label)}`,
-									);
-									if (singleAnswer.message) {
-										add(
-											`     ${theme.fg('muted', `Note: "${singleAnswer.message}"`)}`,
-										);
+									} else {
+										const singleAnswer = answer as SingleAnswer;
+										const prefix = singleAnswer.wasCustom ? '(custom) ' : '';
+											add(
+												`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', prefix + singleAnswer.label)}`,
+											);
+											if (singleAnswer.message) {
+												add(
+													`     ${theme.fg('muted', `Note: "${singleAnswer.message}"`)}`,
+												);
+										}
 									}
 								}
 							}
-						}
-						lines.push('');
-						if (allAnswered()) {
-							add(theme.fg('success', ' Press Enter to submit'));
-						} else {
-							const missing = questions
-								.filter((_, i) => !answers.has(i))
-								.map((qq) => qq.questionTopic)
-								.join(', ');
-							add(theme.fg('warning', ` Unanswered: ${missing}`));
+							lines.push('');
+							if (allAnswered()) {
+								add(theme.fg('success', ' Press Enter to submit'));
+							} else {
+								const missing = questions
+									.filter((_, i) => !answers.has(i))
+									.map((qq) => qq.questionTopic)
+									.join(', ');
+								add(theme.fg('warning', ` Unanswered: ${missing}`));
+							}
 						}
 					} else if (q) {
 						add(theme.fg('muted', ` ${q.prompt}`));
@@ -982,14 +1032,18 @@ export default function question(pi: ExtensionAPI) {
 
 					lines.push('');
 					if (!inputMode && !messageMode && !commentMode) {
-						const help = isMulti
-							? isMultiQ
-								? ' ←→ navigate • ↑↓ select • Space☐ toggle • Tab↹ add note • Shift+Tab↖ comment • Enter confirm • Esc cancel'
+						if (repromptMode) {
+							add(theme.fg('warning', ' ↑↓←→ Answer a question • Esc cancel'));
+						} else {
+							const help = isMulti
+								? isMultiQ
+									? ' ←→ navigate • ↑↓ select • Space☐ toggle • Tab↹ add note • Shift+Tab↖ comment • Enter confirm • Esc cancel'
 								: ' ←→ navigate • ↑↓ select • Tab↹ add note • Enter confirm • Esc cancel'
-							: isMultiQ
-								? ' ↑↓ select • Space☐ toggle • Tab↹ add note • Shift+Tab↖ comment • Enter confirm • Esc cancel'
-								: ' ↑↓ navigate • Enter select • Tab↹ add note • Esc cancel';
-						add(theme.fg('dim', help));
+								: isMultiQ
+									? ' ↑↓ select • Space☐ toggle • Tab↹ add note • Shift+Tab↖ comment • Enter confirm • Esc cancel'
+									: ' ↑↓ navigate • Enter select • Tab↹ add note • Esc cancel';
+							add(theme.fg('dim', help));
+						}
 					}
 					add(theme.fg('accent', '─'.repeat(width)));
 
@@ -1022,8 +1076,40 @@ export default function question(pi: ExtensionAPI) {
 				};
 			}
 
+			// Debug output: JSON with full questionnaire and answers
+			const debugContent: string[] = [];
+			if (DEBUG) {
+				const debug = {
+					questions: questions.map((q, idx) => ({
+						index: idx,
+						questionTopic: q.questionTopic,
+						prompt: q.prompt,
+						type: q.type,
+						options: q.options.map((o) => ({
+							value: o.value,
+							label: o.label,
+							description: o.description ?? null,
+							recommended: o.recommended ?? false,
+						})),
+					})),
+					answers: result.answers.map((a, idx) => ({
+						questionIndex: idx,
+						...a,
+					})),
+					cancelled: result.cancelled,
+				};
+				
+				// Visible debug format for terminal output
+				debugContent.push(
+					`━━━ QUESTION_DEBUG ━━━\n${JSON.stringify(debug, null, 2)}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`,
+				);
+			}
+
 			// Format answers as markdown sections
 			const lines: string[] = [];
+			if (DEBUG) {
+				lines.push(...debugContent, '');
+			}
 			for (let i = 0; i < questions.length; i++) {
 				const q = questions[i];
 				if (!q) continue;
@@ -1050,6 +1136,9 @@ export default function question(pi: ExtensionAPI) {
 				} else {
 					const singleAnswer = answer as SingleAnswer;
 					lines.push(`- ${singleAnswer.label}`);
+					if (singleAnswer.message) {
+						lines.push(`  - User Comment: ${singleAnswer.message}`);
+					}
 				}
 
 				lines.push('');
@@ -1109,6 +1198,9 @@ export default function question(pi: ExtensionAPI) {
 				} else {
 					const singleAnswer = answer as SingleAnswer;
 					lines.push(`- ${singleAnswer.label}`);
+					if (singleAnswer.message) {
+						lines.push(`  - User Comment: ${singleAnswer.message}`);
+					}
 				}
 
 				lines.push('');
