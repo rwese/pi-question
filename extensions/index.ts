@@ -467,7 +467,29 @@ export default function question(pi: ExtensionAPI) {
 							: {};
 						saveMultiAnswer(pendingOther.index, values, labels, wasCustom, comments);
 					} else {
-						if (trimmedMsg) {
+						// For single-select: save the currently highlighted option (not Other)
+						const opt = currentOptions()[optionIndex];
+						if (opt && !opt.isOther) {
+							if (trimmedMsg) {
+								saveSingleAnswer(
+									pendingOther.index,
+									opt.value,
+									opt.label,
+									false,
+									optionIndex + 1,
+									trimmedMsg,
+								);
+							} else {
+								saveSingleAnswer(
+									pendingOther.index,
+									opt.value,
+									opt.label,
+									false,
+									optionIndex + 1,
+									undefined,
+								);
+							}
+						} else if (trimmedMsg) {
 							saveSingleAnswer(
 								pendingOther.index,
 								OTHER_INPUT,
@@ -509,14 +531,27 @@ export default function question(pi: ExtensionAPI) {
 						}
 						saveMultiAnswer(pendingOther.index, values, labels, wasCustom, undefined);
 					} else {
-						saveSingleAnswer(
-							pendingOther.index,
-							NO_CHOICE,
-							'(no choice)',
-							false,
-							undefined,
-							undefined,
-						);
+						// For single-select: save the currently highlighted option (not Other)
+						const opt = currentOptions()[optionIndex];
+						if (opt && !opt.isOther) {
+							saveSingleAnswer(
+								pendingOther.index,
+								opt.value,
+								opt.label,
+								false,
+								optionIndex + 1,
+								undefined,
+							);
+						} else {
+							saveSingleAnswer(
+								pendingOther.index,
+								NO_CHOICE,
+								'(no choice)',
+								false,
+								undefined,
+								undefined,
+							);
+						}
 					}
 
 					pendingOther = null;
@@ -687,7 +722,7 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					if (matchesKey(data, Key.enter) && q) {
-						const opt = opts[optionIndex];
+						const opt = currentOptions()[optionIndex];
 						if (!opt) return;
 						if (opt.isOther) {
 							inputMode = true;
@@ -715,7 +750,7 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					if (matchesKey(data, Key.tab) && q) {
-						const opt = opts[optionIndex];
+						const opt = currentOptions()[optionIndex];
 						if (!opt) return;
 
 						if (isMultiQ) {
