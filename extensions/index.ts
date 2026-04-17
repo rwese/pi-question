@@ -1052,8 +1052,6 @@ export default function question(pi: ExtensionAPI) {
 				} else {
 					const singleAnswer = answer as SingleAnswer;
 					lines.push(`- ${singleAnswer.label}`);
-					if (singleAnswer.message) {
-					}
 				}
 
 				lines.push('');
@@ -1108,8 +1106,6 @@ export default function question(pi: ExtensionAPI) {
 				} else {
 					const singleAnswer = answer as SingleAnswer;
 					lines.push(`- ${singleAnswer.label}`);
-					if (singleAnswer.message) {
-					}
 				}
 
 				lines.push('');
