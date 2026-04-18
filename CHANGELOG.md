@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Local quality gates**: husky + lint-staged pre-commit hooks for format/lint/typecheck
 - **Integration tests**: Comprehensive test suite for full questionnaire workflow
 - **Type guards**: `isSingleAnswer()` and `isMultiAnswer()` helper functions
 - **Answer validation**: Warns when answer count doesn't match question count
