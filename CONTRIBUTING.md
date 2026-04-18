@@ -1,4 +1,4 @@
-# Contributing to @frugally3683/pi-question
+# Contributing to @rwese/pi-question
 
 Thank you for your interest in contributing!
 
