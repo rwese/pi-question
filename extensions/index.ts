@@ -638,7 +638,8 @@ export default function question(pi: ExtensionAPI) {
 							if (currentTab === questions.length && !hasAnyAnswer()) {
 								// Cannot navigate away from submit tab without answering at least one question
 								repromptMode = true;
-								repromptMessage = 'You must answer at least one question before submitting';
+								repromptMessage =
+									'You must answer at least one question before submitting';
 								refresh();
 								return;
 							}
@@ -898,7 +899,12 @@ export default function question(pi: ExtensionAPI) {
 						if (repromptMode) {
 							add(theme.fg('warning', ` ⚠ ${repromptMessage}`));
 							lines.push('');
-							add(theme.fg('muted', ' Press any key to continue answering questions...'));
+							add(
+								theme.fg(
+									'muted',
+									' Press any key to continue answering questions...',
+								),
+							);
 							lines.push('');
 							lines.push('');
 							add(theme.fg('accent', theme.bold(' Answers so far:')));
@@ -1019,7 +1025,7 @@ export default function question(pi: ExtensionAPI) {
 					})),
 					cancelled: result.cancelled,
 				};
-				
+
 				// Visible debug format for terminal output
 				debugContent.push(
 					`━━━ QUESTION_DEBUG ━━━\n${JSON.stringify(debug, null, 2)}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n`,
@@ -1052,9 +1058,9 @@ export default function question(pi: ExtensionAPI) {
 				} else {
 					const singleAnswer = answer as SingleAnswer;
 					lines.push(`- ${singleAnswer.label}`);
-						if (singleAnswer.message) {
-							lines.push(`  Note: "${singleAnswer.message}"`);
-						}
+					if (singleAnswer.message) {
+						lines.push(`  Note: "${singleAnswer.message}"`);
+					}
 				}
 
 				lines.push('');
@@ -1109,9 +1115,9 @@ export default function question(pi: ExtensionAPI) {
 				} else {
 					const singleAnswer = answer as SingleAnswer;
 					lines.push(`- ${singleAnswer.label}`);
-						if (singleAnswer.message) {
-							lines.push(`  Note: "${singleAnswer.message}"`);
-						}
+					if (singleAnswer.message) {
+						lines.push(`  Note: "${singleAnswer.message}"`);
+					}
 				}
 
 				lines.push('');
@@ -1137,8 +1143,16 @@ export default function question(pi: ExtensionAPI) {
 					type: 'single',
 					options: [
 						{ value: 'go', label: 'Go', description: 'Fast, compiled, concurrent' },
-						{ value: 'rust', label: 'Rust', description: 'Safe, fast, zero-cost abstractions' },
-						{ value: 'typescript', label: 'TypeScript', description: 'JavaScript with types' },
+						{
+							value: 'rust',
+							label: 'Rust',
+							description: 'Safe, fast, zero-cost abstractions',
+						},
+						{
+							value: 'typescript',
+							label: 'TypeScript',
+							description: 'JavaScript with types',
+						},
 						{ value: 'python', label: 'Python', description: 'Simple and readable' },
 					],
 				},
@@ -1169,7 +1183,12 @@ export default function question(pi: ExtensionAPI) {
 					prompt: 'How do you prefer to manage your development workflow?',
 					type: 'multi',
 					options: [
-						{ value: 'tmux', label: 'tmux', description: 'Terminal multiplexer', recommended: true },
+						{
+							value: 'tmux',
+							label: 'tmux',
+							description: 'Terminal multiplexer',
+							recommended: true,
+						},
 						{ value: 'docker', label: 'Docker', description: 'Containerization' },
 						{ value: 'git', label: 'Git', description: 'Version control' },
 						{ value: 'make', label: 'Makefiles', description: 'Build automation' },
@@ -1267,7 +1286,8 @@ export default function question(pi: ExtensionAPI) {
 					if (matchesKey(data, Key.right) && currentTab < totalTabs - 1) {
 						if (currentTab === testQuestions.length && !hasAnyAnswer()) {
 							repromptMode = true;
-							repromptMessage = 'You must answer at least one question before submitting';
+							repromptMessage =
+								'You must answer at least one question before submitting';
 							refresh();
 							return;
 						}
@@ -1292,7 +1312,11 @@ export default function question(pi: ExtensionAPI) {
 							return;
 						}
 						if (matchesKey(data, Key.enter) && allAnswered()) {
-							done({ questions: testQuestions, answers: Array.from(answers.values()), cancelled: false });
+							done({
+								questions: testQuestions,
+								answers: Array.from(answers.values()),
+								cancelled: false,
+							});
 						}
 						if (matchesKey(data, Key.escape)) {
 							done({ questions: testQuestions, answers: [], cancelled: true });
@@ -1339,8 +1363,12 @@ export default function question(pi: ExtensionAPI) {
 							if (q.type === 'multi') {
 								const selected = selectedOptions.get(currentTab) || new Set();
 								answers.set(currentTab, {
-									values: Array.from(selected).map((i) => q.options[i]?.value || ''),
-									labels: Array.from(selected).map((i) => q.options[i]?.label || ''),
+									values: Array.from(selected).map(
+										(i) => q.options[i]?.value || '',
+									),
+									labels: Array.from(selected).map(
+										(i) => q.options[i]?.label || '',
+									),
 									wasCustom: Array.from(selected).map(() => false),
 								});
 							} else {
@@ -1405,7 +1433,12 @@ export default function question(pi: ExtensionAPI) {
 						if (repromptMode) {
 							add(theme.fg('warning', ` ⚠ ${repromptMessage}`));
 							lines.push('');
-							add(theme.fg('muted', ' Press any key to continue answering questions...'));
+							add(
+								theme.fg(
+									'muted',
+									' Press any key to continue answering questions...',
+								),
+							);
 						} else {
 							add(theme.fg('accent', theme.bold(' Ready to submit')));
 							lines.push('');
@@ -1415,9 +1448,13 @@ export default function question(pi: ExtensionAPI) {
 								const answer = answers.get(i);
 								if (answer) {
 									if ('values' in answer) {
-										add(`${theme.fg('muted', ` ${qq.questionTopic}: `)}${theme.fg('text', answer.labels.join(', '))}`);
+										add(
+											`${theme.fg('muted', ` ${qq.questionTopic}: `)}${theme.fg('text', answer.labels.join(', '))}`,
+										);
 									} else {
-										add(`${theme.fg('muted', ` ${qq.questionTopic}: `)}${theme.fg('text', answer.label)}`);
+										add(
+											`${theme.fg('muted', ` ${qq.questionTopic}: `)}${theme.fg('text', answer.label)}`,
+										);
 									}
 								}
 							}
@@ -1425,7 +1462,10 @@ export default function question(pi: ExtensionAPI) {
 							if (allAnswered()) {
 								add(theme.fg('success', ' Press Enter to submit'));
 							} else {
-								const missing = testQuestions.filter((_, i) => !answers.has(i)).map((qq) => qq.questionTopic).join(', ');
+								const missing = testQuestions
+									.filter((_, i) => !answers.has(i))
+									.map((qq) => qq.questionTopic)
+									.join(', ');
 								add(theme.fg('warning', ` Unanswered: ${missing}`));
 							}
 						}
@@ -1442,10 +1482,14 @@ export default function question(pi: ExtensionAPI) {
 							let prefix: string;
 							if (q.type === 'multi') {
 								const cursorMark = isCursor ? theme.fg('accent', '>') + ' ' : '  ';
-								const checkMark = selected ? theme.fg('accent', '☑') : theme.fg('muted', '☐');
+								const checkMark = selected
+									? theme.fg('accent', '☑')
+									: theme.fg('muted', '☐');
 								prefix = cursorMark + checkMark + ' ';
 							} else {
-								prefix = isCursor ? theme.fg('accent', '> ● ') : theme.fg('muted', '  ○ ');
+								prefix = isCursor
+									? theme.fg('accent', '> ● ')
+									: theme.fg('muted', '  ○ ');
 							}
 
 							let labelText = `${i + 1}. ${opt.label}`;
@@ -1475,7 +1519,13 @@ export default function question(pi: ExtensionAPI) {
 					return lines;
 				}
 
-				return { render, invalidate: () => { cachedLines = undefined; }, handleInput };
+				return {
+					render,
+					invalidate: () => {
+						cachedLines = undefined;
+					},
+					handleInput,
+				};
 			});
 
 			if (result.cancelled) {
