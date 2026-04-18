@@ -1,0 +1,19 @@
+# Development artifacts
+TODO.md
+*.test.ts
+vitest.config.ts
+tsconfig.json
+
+# Git
+.husky
+
+# CI
+.eslintrc*
+.prettierrc
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

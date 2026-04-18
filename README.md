@@ -1,5 +1,9 @@
 # @rwese/pi-question
 
+[![npm version](https://img.shields.io/npm/v/@rwese/pi-question)](https://www.npmjs.com/package/@rwese/pi-question)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI Quality Gates](https://github.com/rwese/pi-question/actions/workflows/ci.yml/badge.svg)](https://github.com/rwese/pi-question/actions)
+
 Unified question tool for the pi coding agent with single/multi-question support, optional notes, per-option comments, and custom input.
 
 ## Features

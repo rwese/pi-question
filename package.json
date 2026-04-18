@@ -1,6 +1,6 @@
 {
   "name": "@rwese/pi-question",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Unified question tool for pi coding agent - single or multi-question interactions with optional notes and custom input support",
   "type": "module",
   "main": "./extensions/index.ts",
@@ -8,6 +8,14 @@
     "extensions": [
       "./extensions"
     ]
+  },
+  "files": [
+    "extensions",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   },
   "keywords": [
     "pi-package",
@@ -54,6 +62,12 @@
     "format": "prettier --write extensions/",
     "typecheck": "tsc --noEmit",
     "validate": "npm run typecheck && npm run lint && npm run test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "version:patch": "npm version patch -m 'chore: Bump patch version' && git push && git push --tags",
+    "version:minor": "npm version minor -m 'feat: Bump minor version' && git push && git push --tags",
+    "version:major": "npm version major -m 'BREAKING CHANGE: Major version bump' && git push && git push --tags",
+    "release:patch": "npm run validate && npm run version:patch && npm publish",
+    "release:minor": "npm run validate && npm run version:minor && npm publish",
+    "release:major": "npm run validate && npm run version:major && npm publish"
   }
 }

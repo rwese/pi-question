@@ -10,6 +10,11 @@ npm run validate  # typecheck + lint + test
 npm run lint      # ESLint
 npm run format    # Prettier
 npm run typecheck # TypeScript check
+
+# Release
+npm run release:patch   # patch + push + publish
+npm run release:minor   # minor + push + publish
+npm run release:major   # major + push + publish
 ```
 
 ## Project Structure
