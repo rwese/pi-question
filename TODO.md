@@ -1,18 +1,22 @@
-# TODO: Publish @rwese/pi-question Publicly
+# ✅ Publishing Complete
 
-## Status
+Published to npm: https://www.npmjs.com/package/@rwese/pi-question
 
-- [x] 1. Create LICENSE file
-- [x] 2. Add CONTRIBUTING.md
-- [x] 3. Add publishConfig + files to package.json
-- [x] 4. Add README badges
-- [x] 5. Version bump to v0.2.1
-- [x] 6. Run validation
-- [x] 7. Add release scripts to package.json
-- [ ] 8. Push + `npm publish`
+## Completed Tasks
 
-## Notes
+- [x] Create LICENSE file
+- [x] Add CONTRIBUTING.md
+- [x] Add publishConfig + files to package.json
+- [x] Add README badges
+- [x] Version bump to v0.2.1
+- [x] Run validation
+- [x] Add release scripts to package.json
+- [x] Push + `npm publish`
 
-- Platform: npm + GitHub
-- CI: Auto-publish on release
-- Version: Semantic versioning (0.2.0 → 0.2.1)
+## Release Commands
+
+```bash
+npm run release:patch   # patch + push + publish
+npm run release:minor  # minor + push + publish
+npm run release:major  # major + push + publish
+```
