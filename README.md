@@ -21,11 +21,11 @@ Unified question tool for the pi coding agent with single/multi-question support
 ## Installation
 
 ```bash
+# From npm (recommended)
+pi install npm:@rwese/pi-question
+
 # From GitHub
 pi install git:github.com/rwese/pi-question
-
-# From npm (when published)
-pi install npm:@rwese/pi-question
 ```
 
 After install, enable via `pi config` → User → Extensions.
