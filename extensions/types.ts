@@ -30,7 +30,6 @@ export interface MultiAnswer {
 	values: string[];
 	labels: string[];
 	wasCustom: boolean[];
-	comments: Record<number, string>;
 }
 
 export type Answer = SingleAnswer | MultiAnswer;

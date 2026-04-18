@@ -9,23 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Regression tests for Other option**: Add tests to ensure selecting "Other" properly opens user input prompt
-- Tests cover: single-select Other, multi-select Tab note, empty options, and Escape cancel
-
-## [0.3.0] - 2026-04-16
-
-### Added
-
-- **Per-option comments**: Shift+Tab on selected multi-select option adds a comment to that specific option
-- `comments` field in MultiAnswer interface (`Record<number, string>`) replaces `message`
-- Comment mode UI with option label display and existing comment preview
-- Comments preserved when navigating between questions or using Tab notes
+- **Integration tests**: Comprehensive test suite for full questionnaire workflow
+- **Type guards**: `isSingleAnswer()` and `isMultiAnswer()` helper functions
+- **Answer validation**: Warns when answer count doesn't match question count
 
 ### Changed
 
-- **Multi-select output format**: comments now appear inline under each selected option
-- `MultiAnswer.message?: string` → `MultiAnswer.comments: Record<number, string>`
-- Updated keyboard navigation: Shift+Tab for comments, Tab for answer notes
+- README updated with comprehensive examples and return data structure documentation
 
 ## [0.2.0] - 2026-04-15
 
@@ -68,10 +58,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial extension structure with TypeScript/ESM
 - Questionnaire tool with single/multi-question support
 - Tab navigation for multi-question flows
-- Custom input ("Type something") option
-- Editor integration for freeform input
+- Custom input ("Other") option with freeform input
+- Editor integration for freeform text entry
 - Quality gates (ESLint, Prettier, TypeScript strict)
 - CI workflow with GitHub Actions
 - Comprehensive documentation
 
 [0.1.0]: https://github.com/rwese/pi-question/releases/tag/v0.1.0
+[0.1.1]: https://github.com/rwese/pi-question/releases/tag/v0.1.1
+[0.2.0]: https://github.com/rwese/pi-question/releases/tag/v0.2.0

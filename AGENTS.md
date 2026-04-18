@@ -9,14 +9,16 @@ npm test          # Run tests
 npm run validate  # typecheck + lint + test
 npm run lint      # ESLint
 npm run format    # Prettier
+npm run typecheck # TypeScript check
 ```
 
 ## Project Structure
 
 ```
 extensions/index.ts  # Main extension (pi-coding-agent tool)
-test/*.test.ts       # Vitest tests
-docs/prds/          # PRD documentation
+extensions/types.ts  # Shared TypeScript interfaces
+extensions/schema.ts # TypeBox validation schemas
+test/*.test.ts      # Vitest tests
 ```
 
 ## Testing
@@ -29,27 +31,32 @@ docs/prds/          # PRD documentation
 
 - TypeScript strict mode
 - ESLint + Prettier enforced
-- Use `Record<number, string>` for option-indexed maps
 - Interface naming: `QuestionOption`, `SingleAnswer`, `MultiAnswer`
 
-### Examples
+### Answer Interfaces
 
-**Option-indexed maps:**
 ```typescript
-const labels: Record<number, string> = { 0: "A", 1: "B" };
+interface SingleAnswer {
+	value: string;      // Option value (e.g., "go", "(other)")
+	label: string;      // Display label
+	wasCustom: boolean; // True if user entered custom text
+	index?: number;     // 1-based position in sorted options
+	message?: string;   // Optional note added via Tab
+}
+
+interface MultiAnswer {
+	values: string[];     // Array of option values
+	labels: string[];     // Array of display labels
+	wasCustom: boolean[]; // Per-item custom flag
+}
 ```
 
-**Answer interfaces:**
-```typescript
-interface SingleAnswer { optionIndex: number; }
-interface MultiAnswer { optionIndices: number[]; }
-```
+### Mock Pattern
 
-**Mock pattern:**
 ```typescript
 vi.mock("@mariozechner/pi-tui", async () => {
-  const mock = await import("./mocks/pi-tui.mock");
-  return mock;
+	// inline mock implementation
+	return { /* mock exports */ };
 });
 ```
 

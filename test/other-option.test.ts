@@ -151,7 +151,7 @@ describe("Other Option - Regression Tests", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			// Wait for handlers to be set up
@@ -210,7 +210,7 @@ describe("Other Option - Regression Tests", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			await new Promise((r) => setTimeout(r, 10));
@@ -266,7 +266,7 @@ describe("Other Option - Regression Tests", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			await new Promise((r) => setTimeout(r, 10));
@@ -320,7 +320,7 @@ describe("Other Option - Regression Tests", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			await new Promise((r) => setTimeout(r, 10));
@@ -376,7 +376,7 @@ describe("Other Option - Regression Tests", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			await new Promise((r) => setTimeout(r, 10));

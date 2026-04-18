@@ -97,7 +97,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				{ questions: [{ questionTopic: "Lang", prompt: "Choose language", options: [{ value: "go", label: "Go" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: localMockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: localMockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			// Should have answered the question
@@ -127,7 +127,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				{ questions: [{ questionTopic: "Lang", prompt: "Choose language", options: [{ value: "go", label: "Go" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			// Should have answered the question
@@ -155,7 +155,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				{ questions: [{ questionTopic: "Tools", type: "multi", prompt: "Select tools", options: [{ value: "git", label: "Git" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			expect(result.details.answers).toHaveLength(1);
@@ -180,7 +180,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				{ questions: [{ questionTopic: "Tools", type: "multi", prompt: "Select tools", options: [{ value: "git", label: "Git" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			// Empty selection is valid - it becomes "(no choice)" in the UI
@@ -218,7 +218,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			expect(result.details.answers).toHaveLength(2);
@@ -255,7 +255,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			// The UI should prevent submitting with unanswered questions
@@ -314,7 +314,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				{ questions: [{ questionTopic: "Lang", prompt: "Choose language", options: [{ value: "go", label: "Go" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			// Tab + Enter should still result in a valid answer
@@ -341,7 +341,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				{ questions: [{ questionTopic: "Lang", prompt: "Choose language", options: [{ value: "go", label: "Go" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			expect(result.details.cancelled).toBe(true);
@@ -387,7 +387,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			// The UI callback was registered
@@ -426,7 +426,7 @@ describe("Navigation - Must Answer Requirement", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			// With one answer, the answer is preserved

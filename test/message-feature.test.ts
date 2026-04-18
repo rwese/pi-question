@@ -100,7 +100,7 @@ describe("Message Feature v2", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			expect(result.details).toBeDefined();
@@ -155,7 +155,7 @@ describe("Message Feature v2", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const answer = result.details.answers[0] as MultiAnswer;
@@ -206,7 +206,7 @@ describe("Message Feature v2", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			expect(result.content[0].text).toContain("- [x] Git");

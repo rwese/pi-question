@@ -138,7 +138,7 @@ describe("Error Handling v2", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			// Should not error, should allow custom UI
@@ -200,7 +200,7 @@ describe("Error Handling v2", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			expect(mockCustom).toHaveBeenCalled();
@@ -239,7 +239,7 @@ describe("Error Handling v2", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			expect(mockCustom).toHaveBeenCalled();
@@ -278,7 +278,7 @@ describe("Error Handling v2", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			expect(mockCustom).toHaveBeenCalled();
