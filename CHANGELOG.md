@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Publishing preparation**: LICENSE file, CONTRIBUTING.md, improved CI workflow
 - **README badges**: npm version, license, and CI status badges
+- **npm publication**: Published to @rwese/pi-question on npm registry
 
 ## [Unreleased]
 
