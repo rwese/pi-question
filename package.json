@@ -5,9 +5,17 @@
   "type": "module",
   "main": "./extensions/index.ts",
   "pi": {
-    "extensions": ["./extensions"]
+    "extensions": [
+      "./extensions"
+    ]
   },
-  "keywords": ["pi-package", "pi-extension", "question", "ui", "interactive"],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "question",
+    "ui",
+    "interactive"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -23,14 +31,19 @@
   "devDependencies": {
     "@mariozechner/pi-coding-agent": "*",
     "@sinclair/typebox": "*",
-    "vitest": "^2.0.0",
-    "@vitest/coverage-v8": "^2.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.8.0",
-    "eslint": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "prettier": "^3.4.0"
+    "@vitest/coverage-v8": "^2.0.0",
+    "eslint": "^9.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.4.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^2.0.0"
+  },
+  "lint-staged": {
+    "extensions/**/*.ts": ["prettier --write", "eslint --fix", "tsc --noEmit"]
   },
   "scripts": {
     "test": "vitest run",
@@ -40,6 +53,7 @@
     "lint:fix": "eslint extensions/ --fix",
     "format": "prettier --write extensions/",
     "typecheck": "tsc --noEmit",
-    "validate": "npm run typecheck && npm run lint && npm run test"
+    "validate": "npm run typecheck && npm run lint && npm run test",
+    "prepare": "husky"
   }
 }
