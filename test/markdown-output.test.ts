@@ -63,7 +63,7 @@ describe("Markdown Output", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -98,7 +98,7 @@ describe("Markdown Output", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -140,7 +140,7 @@ describe("Markdown Output", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -176,7 +176,7 @@ describe("Markdown Output", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -221,7 +221,7 @@ describe("Markdown Output", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -266,7 +266,7 @@ describe("Markdown Output", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -309,7 +309,7 @@ describe("Markdown Output", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -354,7 +354,7 @@ describe("Markdown Output", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -403,7 +403,7 @@ describe("Markdown Output", () => {
 				},
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -442,7 +442,7 @@ describe("Markdown Output", () => {
 				{ questions: [{ questionTopic: "Test", prompt: "Test?", options: [{ value: "a", label: "A" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: abortMock }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: abortMock }
 			);
 
 			expect(abortMock).toHaveBeenCalled();
@@ -474,7 +474,7 @@ describe("Markdown Output", () => {
 				{ questions: [{ questionTopic: "Test", prompt: "Test?", options: [{ value: "a", label: "A" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom }, abort: vi.fn() }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
 			);
 
 			expect(mockPi.sendMessage).toHaveBeenCalledWith(
@@ -509,7 +509,7 @@ describe("Markdown Output", () => {
 				{ questions: [{ questionTopic: "Lang", prompt: "Choose language", options: [{ value: "go", label: "Go" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			expect(result.details.questions).toHaveLength(1);
@@ -541,7 +541,7 @@ describe("Markdown Output", () => {
 				{ questions: [{ questionTopic: "Tools", type: "multi", prompt: "Select tools", options: [{ value: "git", label: "Git" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			expect(result.details.answers).toHaveLength(1);
@@ -575,7 +575,7 @@ describe("Markdown Output", () => {
 				{ questions: [{ questionTopic: "Special", prompt: "Special chars", options: [{ value: "test", label: "Option" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -607,7 +607,7 @@ describe("Markdown Output", () => {
 				{ questions: [{ questionTopic: "Empty", prompt: "", options: [{ value: "a", label: "A" }] }] },
 				new AbortController().signal,
 				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom } }
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
 			);
 
 			const markdown = result.content[0].text;
@@ -661,8 +661,8 @@ describe("renderResult", () => {
 			expect(rendered.text).toContain("- Go");
 		});
 
-		it("stores message in single-select but does not display in renderResult markdown", () => {
-			// Single-answer message is stored but NOT displayed in renderResult
+		it("displays message in single-select renderResult markdown", () => {
+			// Single-answer message is stored AND displayed in renderResult
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
@@ -686,7 +686,7 @@ describe("renderResult", () => {
 			expect(rendered.text).toContain("### Why?");
 			expect(rendered.text).toContain("- Go");
 			// Message is stored but not displayed in markdown
-			expect(rendered.text).not.toContain("Note:");
+			expect(rendered.text).toContain('Note: "Fast compilation"');
 		});
 	});
 

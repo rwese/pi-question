@@ -1,8 +1,16 @@
+# macOS
+.DS_Store
+
+# Node
 node_modules/
 *.log
 *.tgz
-.DS_Store
+
+# Build outputs
 coverage/
 dist/
+
+# Environment
 .env
-.env.local
+.env.local.pi/
+.pi/
