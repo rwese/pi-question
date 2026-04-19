@@ -1,6 +1,6 @@
 {
   "name": "@rwese/pi-question",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Unified question tool for pi coding agent - single or multi-question interactions with optional notes and custom input support",
   "type": "module",
   "main": "./extensions/index.ts",
@@ -51,7 +51,11 @@
     "vitest": "^2.0.0"
   },
   "lint-staged": {
-    "extensions/**/*.ts": ["prettier --write", "eslint --fix", "tsc --noEmit"]
+    "extensions/**/*.ts": [
+      "prettier --write",
+      "eslint --fix",
+      "tsc --noEmit"
+    ]
   },
   "scripts": {
     "test": "vitest run",
