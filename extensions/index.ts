@@ -420,6 +420,15 @@ export default function question(pi: ExtensionAPI) {
 					} else {
 						editor.setText('');
 					}
+					// Pre-save the current selection for single-select
+					// This ensures the answer is recorded even if user skips the note
+					const q = questions[questionIndex];
+					if (q && q.type !== 'multi') {
+						const opt = currentOptions()[optionIndex];
+						if (opt && !opt.isOther) {
+							saveSingleAnswer(questionIndex, opt.value, opt.label, false, optionIndex + 1);
+						}
+					}
 					refresh();
 				}
 
@@ -994,6 +1003,8 @@ export default function question(pi: ExtensionAPI) {
 
 				lines.push(`### ${q.prompt}`);
 				lines.push('');
+				lines.push('user choices/answers:');
+				lines.push('');
 
 				if (q.type === 'multi') {
 					const multiAnswer = answer as MultiAnswer;
@@ -1050,6 +1061,8 @@ export default function question(pi: ExtensionAPI) {
 				if (!answer) continue;
 
 				lines.push(`### ${q.prompt}`);
+				lines.push('');
+				lines.push('user choices/answers:');
 				lines.push('');
 
 				if (q.type === 'multi') {

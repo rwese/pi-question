@@ -62,7 +62,13 @@ await pi.callTool("question", {
 
 ## What Gets Injected Into the Agent
 
-After the user answers all questions, the tool returns **markdown output** that is injected into the agent's context:
+After the user answers all questions, the tool returns **markdown output** that is injected into the agent's context.
+
+### Resulting Markdown Output
+
+![Questionnaire markdown output](docs/screenshot-questionnaire-output.png)
+
+The markdown is rendered inline in the agent's context, showing headers for each question topic and the selected answers.
 
 ### Single-Select Output
 
@@ -70,6 +76,8 @@ When a single-select question is answered, the output includes the question prom
 
 ```markdown
 ### What type of change is this?
+
+user choices/answers:
 
 - Feature
 ```
@@ -80,6 +88,8 @@ Multi-select questions use checkbox notation (`[x]`) to show selected items:
 
 ```markdown
 ### How urgent is this?
+
+user choices/answers:
 
 - [x] High
 - [x] Medium
@@ -92,9 +102,13 @@ When multiple questions are asked, all answers are included in order:
 ```markdown
 ### What type of change is this?
 
+user choices/answers:
+
 - Bug fix
 
 ### How urgent is this?
+
+user choices/answers:
 
 - [x] High
 - [x] Medium
