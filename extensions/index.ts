@@ -426,7 +426,13 @@ export default function question(pi: ExtensionAPI) {
 					if (q && q.type !== 'multi') {
 						const opt = currentOptions()[optionIndex];
 						if (opt && !opt.isOther) {
-							saveSingleAnswer(questionIndex, opt.value, opt.label, false, optionIndex + 1);
+							saveSingleAnswer(
+								questionIndex,
+								opt.value,
+								opt.label,
+								false,
+								optionIndex + 1,
+							);
 						}
 					}
 					refresh();
@@ -1085,5 +1091,4 @@ export default function question(pi: ExtensionAPI) {
 			return new Text(lines.join('\n'), 0, 0);
 		},
 	});
-
 }
