@@ -994,6 +994,8 @@ export default function question(pi: ExtensionAPI) {
 
 			// Format answers as markdown sections
 			const lines: string[] = [];
+			lines.push('## User answered our questions');
+			lines.push('');
 			for (let i = 0; i < questions.length; i++) {
 				const q = questions[i];
 				if (!q) continue;
@@ -1002,9 +1004,6 @@ export default function question(pi: ExtensionAPI) {
 				if (!answer) continue;
 
 				lines.push(`### ${q.prompt}`);
-				lines.push('');
-				lines.push('user choices/answers:');
-				lines.push('');
 
 				if (q.type === 'multi') {
 					const multiAnswer = answer as MultiAnswer;
@@ -1054,6 +1053,8 @@ export default function question(pi: ExtensionAPI) {
 			}
 
 			const lines: string[] = [];
+			lines.push('## User answered our questions');
+			lines.push('');
 			for (let i = 0; i < details.questions.length; i++) {
 				const q = details.questions[i];
 				if (!q) continue;
@@ -1061,9 +1062,6 @@ export default function question(pi: ExtensionAPI) {
 				if (!answer) continue;
 
 				lines.push(`### ${q.prompt}`);
-				lines.push('');
-				lines.push('user choices/answers:');
-				lines.push('');
 
 				if (q.type === 'multi') {
 					const multiAnswer = answer as MultiAnswer;
