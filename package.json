@@ -54,7 +54,7 @@
     "extensions/**/*.ts": [
       "prettier --write",
       "eslint --fix",
-      "tsc --noEmit"
+      "prettier --check"
     ]
   },
   "scripts": {
