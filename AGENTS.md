@@ -65,6 +65,27 @@ vi.mock("@mariozechner/pi-tui", async () => {
 });
 ```
 
+## Recommended Field (UI-Only)
+
+The `recommended: true` option affects **UI only**:
+- Pre-selects the option (multi-select)
+- Positions cursor on the option (single-select)
+- Shows `(Recommended)` label in TUI display
+- Sorts recommended options first
+
+**Never appears in:**
+- Markdown output (injected into agent context)
+- `details.answers` objects
+- `renderResult` output
+
+Example - option with `recommended: true`:
+```typescript
+{ value: "go", label: "Go", recommended: true }
+```
+
+TUI shows: `● Go (Recommended)`
+Markdown output: `- Go` (no "Recommended" suffix)
+
 ## Git Workflow
 
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`
