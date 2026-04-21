@@ -29,6 +29,18 @@ pi install git:github.com/rwese/pi-question
 
 After install, enable via `pi config` → User → Extensions.
 
+## Screenshots
+
+See [demo.md](demo.md) for full interactive demo walkthrough.
+
+![Initial](assets/screenshots/pi-01-initial.png) | ![Single Select](assets/screenshots/pi-02-q1-single.png) | ![Note Entry](assets/screenshots/pi-03-note.png)
+:---:|:---:|:---:
+*Pi starting up* | *Single select* | *Tab to add note*
+
+![Multi Select](assets/screenshots/pi-04-q2-multi.png) | ![Multi Selected](assets/screenshots/pi-05-multi-selected.png) | ![Summary](assets/screenshots/pi-07-summary.png)
+:---:|:---:|:---:
+*Multi select* | *Multiple options* | *Review before submit*
+
 ## Usage
 
 ### Tool Call
@@ -66,23 +78,21 @@ After the user answers all questions, the tool returns **markdown output** that 
 
 ### Resulting Markdown Output
 
-![Questionnaire markdown output](docs/screenshot-output-multi.png)
-
-The markdown is rendered inline in the agent's context, showing headers for each question topic and the selected answers.
+The markdown is rendered inline in the agent's context, showing headers for each question and the selected answers.
 
 ### Single-Select Output
 
 When a single-select question is answered, the output includes the question prompt followed by the selected option:
 
 ```markdown
+## User answered our questions
+
 ### What type of change is this?
 
-user choices/answers:
-
-- **Feature** - A new feature implementation
+- **Bug fix** - Fix a bug in existing code
 ```
 
-**Note:** When an option includes a `description`, it is bolded and displayed with the description text. User notes (added via Tab) are shown separately.
+**Note:** When an option includes a `description`, it is bolded and displayed alongside the label. User notes (added via Tab) are shown with a `Note:` prefix.
 
 ### Multi-Select Output
 
@@ -90,8 +100,6 @@ Multi-select questions use checkbox notation (`[x]`) to show selected items:
 
 ```markdown
 ### How urgent is this?
-
-user choices/answers:
 
 - [x] **High** - Needs immediate attention
 - [x] Medium
@@ -102,15 +110,13 @@ user choices/answers:
 When multiple questions are asked, all answers are included in order:
 
 ```markdown
-### What type of change is this?
+## User answered our questions
 
-user choices/answers:
+### What type of change is this?
 
 - **Bug fix** - Fix a bug in existing code
 
 ### How urgent is this?
-
-user choices/answers:
 
 - [x] **High** - Needs immediate attention
 - [x] Medium
@@ -155,7 +161,7 @@ interface MultiAnswer {
   content: [
     {
       type: "text",
-      text: "### What type of change is this?\n\n- Bug fix\n\n### How urgent is this?\n\n- [x] High\n- [x] Medium\n"
+      text: "## User answered our questions\n\n### What type of change is this?\n\n- **Bug fix** - Fix a bug in existing code\n\n### How urgent is this?\n\n- [x] **High** - Needs immediate attention\n- [x] Medium\n"
     }
   ],
   details: {
