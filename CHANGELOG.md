@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Integration tests**: Comprehensive test suite for full questionnaire workflow
 - **Type guards**: `isSingleAnswer()` and `isMultiAnswer()` helper functions
 - **Answer validation**: Warns when answer count doesn't match question count
+- **Screenshots**: Added documentation screenshots showing single/multi-select with descriptions
 
 ### Changed
 
