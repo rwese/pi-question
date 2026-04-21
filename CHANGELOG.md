@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Answer validation**: Warns when answer count doesn't match question count
 - **Screenshots**: Added documentation screenshots showing single/multi-select with descriptions
 
+### Fixed
+
+- **Cursor initialization**: Fixed UI highlighting when recommended option is not first in options array. Cursor now correctly positions on the recommended option after sorting.
+
 ### Changed
 
 - README updated with comprehensive examples and return data structure documentation

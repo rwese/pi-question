@@ -246,9 +246,9 @@ export default function question(pi: ExtensionAPI) {
 				}
 
 				// Initialize cursor to first recommended (or 0 if none)
-				const firstQuestion = questions[0];
-				if (firstQuestion) {
-					optionIndex = getFirstRecommendedIndex(firstQuestion.options);
+				const firstSortedQ = sortedQuestions[0];
+				if (firstSortedQ) {
+					optionIndex = getFirstRecommendedIndex(firstSortedQ.options);
 				}
 
 				// Editor for "Other" option and messages
