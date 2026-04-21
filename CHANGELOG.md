@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **README badges**: npm version, license, and CI status badges
 - **npm publication**: Published to @rwese/pi-question on npm registry
 
+## [0.4.7] - 2026-04-21
+
+### Fixed
+
+- **Type safety edge cases**: Gracefully handle malformed multi-select answers where labels array is missing or undefined
+
 ## [Unreleased]
 
 ### Added

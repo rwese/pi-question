@@ -810,3 +810,93 @@ describe("renderResult", () => {
 		});
 	});
 });
+
+describe("Type Safety Edge Cases", () => {
+		it("handles malformed answer object for multi-select (missing labels)", async () => {
+			// Regression test: undefined is not an object (evaluating 'multiAnswer.labels.length')
+			const mockPi = {
+				registerTool: vi.fn(),
+				registerCommand: vi.fn(),
+				sendMessage: vi.fn(),
+			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
+
+			questionnaire(mockPi);
+
+			const registeredTool = (mockPi.registerTool as ReturnType<typeof vi.fn>).mock.calls[0][0];
+
+			// Simulate a malformed answer where labels is undefined (not array)
+			const mockCustom = vi.fn().mockImplementation(() => {
+				return Promise.resolve({
+					questions: [{ questionTopic: "Test", prompt: "Select", type: "multi", options: [] }],
+					answers: [{
+						values: ["a"],
+						// labels intentionally missing or undefined
+						wasCustom: [false],
+					}],
+					cancelled: false,
+				});
+			});
+
+			// Should not throw, should handle gracefully
+			const result = await registeredTool.execute(
+				"call-id",
+				{
+					questions: [{
+						questionTopic: "Test",
+						type: "multi",
+						prompt: "Select",
+						options: [{ value: "a", label: "Option A" }],
+					}],
+				},
+				new AbortController().signal,
+				vi.fn(),
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
+			);
+
+			expect(result.content).toBeDefined();
+		});
+
+		it("handles single answer passed to multi question gracefully", async () => {
+			// Regression test: single answer incorrectly passed to multi question
+			const mockPi = {
+				registerTool: vi.fn(),
+				registerCommand: vi.fn(),
+				sendMessage: vi.fn(),
+			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
+
+			questionnaire(mockPi);
+
+			const registeredTool = (mockPi.registerTool as ReturnType<typeof vi.fn>).mock.calls[0][0];
+
+			// Simulate a single answer object passed where multi is expected
+			const mockCustom = vi.fn().mockImplementation(() => {
+				return Promise.resolve({
+					questions: [{ questionTopic: "Test", prompt: "Select", type: "multi", options: [] }],
+					answers: [{
+						value: "a",
+						label: "Option A",
+						wasCustom: false,
+					}],
+					cancelled: false,
+				});
+			});
+
+			// Should not throw, should handle gracefully
+			const result = await registeredTool.execute(
+				"call-id",
+				{
+					questions: [{
+						questionTopic: "Test",
+						type: "multi",
+						prompt: "Select",
+						options: [{ value: "a", label: "Option A" }],
+					}],
+				},
+				new AbortController().signal,
+				vi.fn(),
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
+			);
+
+			expect(result.content).toBeDefined();
+		});
+	});

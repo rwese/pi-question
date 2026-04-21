@@ -1057,7 +1057,7 @@ export default function question(pi: ExtensionAPI) {
 
 				lines.push(`### ${q.prompt}`);
 
-				if (q.type === 'multi') {
+				if (q.type === 'multi' && 'labels' in answer && Array.isArray(answer.labels)) {
 					const multiAnswer = answer as MultiAnswer;
 					for (let j = 0; j < multiAnswer.labels.length; j++) {
 						const label = multiAnswer.labels[j];
@@ -1125,7 +1125,7 @@ export default function question(pi: ExtensionAPI) {
 
 				lines.push(`### ${q.prompt}`);
 
-				if (q.type === 'multi') {
+				if (q.type === 'multi' && 'labels' in answer && Array.isArray(answer.labels)) {
 					const multiAnswer = answer as MultiAnswer;
 					for (let j = 0; j < multiAnswer.labels.length; j++) {
 						const label = multiAnswer.labels[j];
