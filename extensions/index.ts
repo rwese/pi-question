@@ -43,6 +43,7 @@ interface Question {
 interface SingleAnswer {
 	value: string;
 	label: string;
+	description?: string;
 	wasCustom: boolean;
 	index?: number;
 	message?: string;
@@ -51,6 +52,7 @@ interface SingleAnswer {
 interface MultiAnswer {
 	values: string[];
 	labels: string[];
+	descriptions: string[];
 	wasCustom: boolean[];
 }
 
@@ -355,6 +357,7 @@ export default function question(pi: ExtensionAPI) {
 					questionIndex: number,
 					value: string,
 					label: string,
+					description: string | undefined,
 					wasCustom: boolean,
 					index?: number,
 					message?: string,
@@ -362,6 +365,7 @@ export default function question(pi: ExtensionAPI) {
 					const answer: SingleAnswer = {
 						value,
 						label,
+						description,
 						wasCustom,
 						index,
 						message,
@@ -373,11 +377,13 @@ export default function question(pi: ExtensionAPI) {
 					questionIndex: number,
 					values: string[],
 					labels: string[],
+					descriptions: string[],
 					wasCustom: boolean[],
 				) {
 					const answer: MultiAnswer = {
 						values,
 						labels,
+						descriptions,
 						wasCustom,
 					};
 					answers.set(questionIndex, answer);
@@ -386,28 +392,31 @@ export default function question(pi: ExtensionAPI) {
 				function getSelectedValues(): {
 					values: string[];
 					labels: string[];
+					descriptions: string[];
 					wasCustom: boolean[];
 				} {
 					const q = currentQuestion();
 					if (!q || q.type !== 'multi') {
-						return { values: [], labels: [], wasCustom: [] };
+						return { values: [], labels: [], descriptions: [], wasCustom: [] };
 					}
 					const selected = selectedOptions.get(currentTab);
 					if (!selected) {
-						return { values: [], labels: [], wasCustom: [] };
+						return { values: [], labels: [], descriptions: [], wasCustom: [] };
 					}
 					const values: string[] = [];
 					const labels: string[] = [];
+					const descriptions: string[] = [];
 					const wasCustom: boolean[] = [];
 					for (const idx of selected) {
 						const opt = q.options[idx];
 						if (opt) {
 							values.push(opt.value);
 							labels.push(opt.label);
+							descriptions.push(opt.description || '');
 							wasCustom.push(false);
 						}
 					}
-					return { values, labels, wasCustom };
+					return { values, labels, descriptions, wasCustom };
 				}
 
 				function showMessagePrompt(questionIndex: number, appended: boolean) {
@@ -430,6 +439,7 @@ export default function question(pi: ExtensionAPI) {
 								questionIndex,
 								opt.value,
 								opt.label,
+								opt.description,
 								false,
 								optionIndex + 1,
 							);
@@ -445,15 +455,22 @@ export default function question(pi: ExtensionAPI) {
 					if (!q) return;
 
 					if (q.type === 'multi') {
-						const { values, labels, wasCustom } = getSelectedValues();
+						const { values, labels, descriptions, wasCustom } = getSelectedValues();
 						if (pendingOther.appended) {
 							if (trimmedMsg) {
 								values.push(OTHER_INPUT);
 								labels.push(trimmedMsg);
+								descriptions.push('');
 								wasCustom.push(true);
 							}
 						}
-						saveMultiAnswer(pendingOther.index, values, labels, wasCustom);
+						saveMultiAnswer(
+							pendingOther.index,
+							values,
+							labels,
+							descriptions,
+							wasCustom,
+						);
 					} else {
 						// For single-select: save the currently highlighted option (not Other)
 						const opt = currentOptions()[optionIndex];
@@ -463,6 +480,7 @@ export default function question(pi: ExtensionAPI) {
 									pendingOther.index,
 									opt.value,
 									opt.label,
+									opt.description,
 									false,
 									optionIndex + 1,
 									trimmedMsg,
@@ -472,6 +490,7 @@ export default function question(pi: ExtensionAPI) {
 									pendingOther.index,
 									opt.value,
 									opt.label,
+									opt.description,
 									false,
 									optionIndex + 1,
 									undefined,
@@ -482,6 +501,7 @@ export default function question(pi: ExtensionAPI) {
 								pendingOther.index,
 								OTHER_INPUT,
 								trimmedMsg,
+								undefined,
 								true,
 								undefined,
 								trimmedMsg,
@@ -491,6 +511,7 @@ export default function question(pi: ExtensionAPI) {
 								pendingOther.index,
 								NO_CHOICE,
 								'(no choice)',
+								undefined,
 								false,
 								undefined,
 								undefined,
@@ -509,15 +530,22 @@ export default function question(pi: ExtensionAPI) {
 					if (!q) return;
 
 					if (q.type === 'multi') {
-						const { values, labels, wasCustom } = getSelectedValues();
+						const { values, labels, descriptions, wasCustom } = getSelectedValues();
 						if (pendingOther.appended) {
 							if (values.length === 0) {
 								values.push(NO_CHOICE);
 								labels.push('(no choice)');
+								descriptions.push('');
 								wasCustom.push(false);
 							}
 						}
-						saveMultiAnswer(pendingOther.index, values, labels, wasCustom);
+						saveMultiAnswer(
+							pendingOther.index,
+							values,
+							labels,
+							descriptions,
+							wasCustom,
+						);
 					} else {
 						// For single-select: save the currently highlighted option (not Other)
 						const opt = currentOptions()[optionIndex];
@@ -526,6 +554,7 @@ export default function question(pi: ExtensionAPI) {
 								pendingOther.index,
 								opt.value,
 								opt.label,
+								opt.description,
 								false,
 								optionIndex + 1,
 								undefined,
@@ -535,6 +564,7 @@ export default function question(pi: ExtensionAPI) {
 								pendingOther.index,
 								NO_CHOICE,
 								'(no choice)',
+								undefined,
 								false,
 								undefined,
 								undefined,
@@ -565,16 +595,24 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					if (q.type === 'multi') {
-						const { values, labels, wasCustom } = getSelectedValues();
+						const { values, labels, descriptions, wasCustom } = getSelectedValues();
 						values.push(OTHER_INPUT);
 						labels.push(trimmed);
+						descriptions.push('');
 						wasCustom.push(true);
-						saveMultiAnswer(inputQuestionIndex, values, labels, wasCustom);
+						saveMultiAnswer(
+							inputQuestionIndex,
+							values,
+							labels,
+							descriptions,
+							wasCustom,
+						);
 					} else {
 						saveSingleAnswer(
 							inputQuestionIndex,
 							OTHER_INPUT,
 							trimmed,
+							undefined,
 							true,
 							undefined,
 							undefined,
@@ -714,18 +752,26 @@ export default function question(pi: ExtensionAPI) {
 						}
 
 						if (isMultiQ) {
-							const { values, labels, wasCustom } = getSelectedValues();
+							const { values, labels, descriptions, wasCustom } = getSelectedValues();
 							if (values.length === 0) {
 								values.push(NO_CHOICE);
 								labels.push('(no choice)');
+								descriptions.push('');
 								wasCustom.push(false);
 							}
-							saveMultiAnswer(currentTab, values, labels, wasCustom);
+							saveMultiAnswer(currentTab, values, labels, descriptions, wasCustom);
 							advanceAfterAnswer();
 							return;
 						}
 
-						saveSingleAnswer(currentTab, opt.value, opt.label, false, optionIndex + 1);
+						saveSingleAnswer(
+							currentTab,
+							opt.value,
+							opt.label,
+							opt.description,
+							false,
+							optionIndex + 1,
+						);
 						advanceAfterAnswer();
 						return;
 					}
@@ -1013,15 +1059,25 @@ export default function question(pi: ExtensionAPI) {
 
 				if (q.type === 'multi') {
 					const multiAnswer = answer as MultiAnswer;
-					for (const label of multiAnswer.labels) {
-						lines.push(`- [x] ${label}`);
+					for (let j = 0; j < multiAnswer.labels.length; j++) {
+						const label = multiAnswer.labels[j];
+						const description = multiAnswer.descriptions[j];
+						if (description) {
+							lines.push(`- [x] **${label}** - ${description}`);
+						} else {
+							lines.push(`- [x] ${label}`);
+						}
 					}
 					if (multiAnswer.labels.length === 0) {
 						lines.push(`- (no selection)`);
 					}
 				} else {
 					const singleAnswer = answer as SingleAnswer;
-					lines.push(`- ${singleAnswer.label}`);
+					if (singleAnswer.description) {
+						lines.push(`- **${singleAnswer.label}** - ${singleAnswer.description}`);
+					} else {
+						lines.push(`- ${singleAnswer.label}`);
+					}
 					if (singleAnswer.message) {
 						lines.push(`  Note: "${singleAnswer.message}"`);
 					}
@@ -1071,15 +1127,25 @@ export default function question(pi: ExtensionAPI) {
 
 				if (q.type === 'multi') {
 					const multiAnswer = answer as MultiAnswer;
-					for (const label of multiAnswer.labels) {
-						lines.push(`- [x] ${label}`);
+					for (let j = 0; j < multiAnswer.labels.length; j++) {
+						const label = multiAnswer.labels[j];
+						const description = multiAnswer.descriptions[j];
+						if (description) {
+							lines.push(`- [x] **${label}** - ${description}`);
+						} else {
+							lines.push(`- [x] ${label}`);
+						}
 					}
 					if (multiAnswer.labels.length === 0) {
 						lines.push(`- (no selection)`);
 					}
 				} else {
 					const singleAnswer = answer as SingleAnswer;
-					lines.push(`- ${singleAnswer.label}`);
+					if (singleAnswer.description) {
+						lines.push(`- **${singleAnswer.label}** - ${singleAnswer.description}`);
+					} else {
+						lines.push(`- ${singleAnswer.label}`);
+					}
 					if (singleAnswer.message) {
 						lines.push(`  Note: "${singleAnswer.message}"`);
 					}

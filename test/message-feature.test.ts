@@ -131,6 +131,7 @@ describe("Message Feature v2", () => {
 							answers: [{
 								values: ["git", "docker"],
 								labels: ["Git", "Docker"],
+								descriptions: [],
 								wasCustom: [false, false],
 							}],
 							cancelled: false,
@@ -182,6 +183,7 @@ describe("Message Feature v2", () => {
 							answers: [{
 								values: ["git", "tmux"],
 								labels: ["Git", "tmux"],
+								descriptions: [],
 								wasCustom: [false, false],
 							}],
 							cancelled: false,
@@ -278,6 +280,7 @@ describe("Message Feature v2", () => {
 						{
 							values: ["git", "docker"],
 							labels: ["Git", "Docker"],
+							descriptions: [],
 							wasCustom: [false, false],
 						},
 					],

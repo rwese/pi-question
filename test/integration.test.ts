@@ -165,7 +165,9 @@ describe("Integration: Full Questionnaire Workflow", () => {
 					],
 					answers: [
 						{ value: "single-val", label: "Single Label", wasCustom: false, index: 1 },
-						{ values: ["multi-a", "multi-b"], labels: ["Multi A", "Multi B"], wasCustom: [false, false] },
+						{ values: ["multi-a", "multi-b"], labels: ["Multi A", "Multi B"],
+ descriptions: [],
+ wasCustom: [false, false] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult);
@@ -235,7 +237,9 @@ describe("Integration: Full Questionnaire Workflow", () => {
 						{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] },
 					],
 					answers: [
-						{ values: ["git", "docker"], labels: ["Git", "Docker"], wasCustom: [false, false] },
+						{ values: ["git", "docker"], labels: ["Git", "Docker"],
+ descriptions: [],
+ wasCustom: [false, false] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult);
@@ -302,7 +306,9 @@ describe("Integration: Full Questionnaire Workflow", () => {
 						{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] },
 					],
 					answers: [
-						{ values: ["git", "(other)"], labels: ["Git", "Docker"], wasCustom: [false, true] },
+						{ values: ["git", "(other)"], labels: ["Git", "Docker"],
+ descriptions: [],
+ wasCustom: [false, true] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult);
@@ -392,7 +398,9 @@ describe("Integration: Full Questionnaire Workflow", () => {
 						{ questionTopic: "Optional", prompt: "Select optional items", type: "multi", options: [] },
 					],
 					answers: [
-						{ values: [], labels: [], wasCustom: [] },
+						{ values: [], labels: [],
+ descriptions: [],
+ wasCustom: [] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult);
@@ -462,7 +470,9 @@ describe("Integration: Full Questionnaire Workflow", () => {
 					],
 					answers: [
 						{ value: "a1", label: "Answer 1", wasCustom: false, index: 1 },
-						{ values: ["b1", "b2"], labels: ["B1", "B2"], wasCustom: [false, false] },
+						{ values: ["b1", "b2"], labels: ["B1", "B2"],
+ descriptions: [],
+ wasCustom: [false, false] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult,
@@ -664,6 +674,7 @@ describe("Integration: recommended Field Isolation", () => {
 					{
 						values: ["docker", "k8s"],
 						labels: ["Docker", "Kubernetes"],
+						descriptions: [],
 						wasCustom: [false, false],
 					},
 				],
