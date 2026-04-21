@@ -145,7 +145,9 @@ describe("Navigation - Must Answer Requirement", () => {
 			mockCustom = vi.fn().mockImplementation(() => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
-					answers: [{ values: ["git"], labels: ["Git"], wasCustom: [false] }],
+					answers: [{ values: ["git"], labels: ["Git"],
+ descriptions: [],
+ wasCustom: [false] }],
 					cancelled: false,
 				});
 			});
@@ -170,7 +172,9 @@ describe("Navigation - Must Answer Requirement", () => {
 			mockCustom = vi.fn().mockImplementation(() => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
-					answers: [{ values: [], labels: [], wasCustom: [] }],
+					answers: [{ values: [], labels: [],
+ descriptions: [],
+ wasCustom: [] }],
 					cancelled: false,
 				});
 			});
@@ -202,7 +206,9 @@ describe("Navigation - Must Answer Requirement", () => {
 					],
 					answers: [
 						{ value: "go", label: "Go", wasCustom: false, index: 1 },
-						{ values: ["git"], labels: ["Git"], wasCustom: [false] },
+						{ values: ["git"], labels: ["Git"],
+ descriptions: [],
+ wasCustom: [false] },
 					],
 					cancelled: false,
 				});

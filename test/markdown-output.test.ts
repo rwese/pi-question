@@ -203,6 +203,7 @@ describe("Markdown Output", () => {
 					answers: [{
 						values: ["git", "docker", "tmux"],
 						labels: ["Git", "Docker", "tmux"],
+						descriptions: [],
 						wasCustom: [false, false, false],
 					}],
 					cancelled: false,
@@ -248,6 +249,7 @@ describe("Markdown Output", () => {
 					answers: [{
 						values: [],
 						labels: [],
+						descriptions: [],
 						wasCustom: [],
 					}],
 					cancelled: false,
@@ -291,6 +293,7 @@ describe("Markdown Output", () => {
 					answers: [{
 						values: ["typescript", "(other)"],
 						labels: ["TypeScript", "Zig"],
+						descriptions: [],
 						wasCustom: [false, true],
 					}],
 					cancelled: false,
@@ -338,7 +341,9 @@ describe("Markdown Output", () => {
 					],
 					answers: [
 						{ value: "go", label: "Go", wasCustom: false, index: 1 },
-						{ values: ["git", "docker"], labels: ["Git", "Docker"], wasCustom: [false, false] },
+						{ values: ["git", "docker"], labels: ["Git", "Docker"],
+ descriptions: [],
+ wasCustom: [false, false] },
 					],
 					cancelled: false,
 				});
@@ -531,7 +536,9 @@ describe("Markdown Output", () => {
 			const mockCustom = vi.fn().mockImplementation(() => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
-					answers: [{ values: ["git"], labels: ["Git"], wasCustom: [false] }],
+					answers: [{ values: ["git"], labels: ["Git"],
+ descriptions: [],
+ wasCustom: [false] }],
 					cancelled: false,
 				});
 			});
@@ -708,6 +715,7 @@ describe("renderResult", () => {
 					answers: [{
 						values: ["git", "docker"],
 						labels: ["Git", "Docker"],
+						descriptions: [],
 						wasCustom: [false, false],
 					}],
 					cancelled: false,
@@ -738,6 +746,7 @@ describe("renderResult", () => {
 					answers: [{
 						values: [],
 						labels: [],
+						descriptions: [],
 						wasCustom: [],
 					}],
 					cancelled: false,

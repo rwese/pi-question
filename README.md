@@ -79,8 +79,10 @@ When a single-select question is answered, the output includes the question prom
 
 user choices/answers:
 
-- Feature
+- **Feature** - A new feature implementation
 ```
+
+**Note:** When an option includes a `description`, it is bolded and displayed with the description text. User notes (added via Tab) are shown separately.
 
 ### Multi-Select Output
 
@@ -91,7 +93,7 @@ Multi-select questions use checkbox notation (`[x]`) to show selected items:
 
 user choices/answers:
 
-- [x] High
+- [x] **High** - Needs immediate attention
 - [x] Medium
 ```
 
@@ -104,13 +106,13 @@ When multiple questions are asked, all answers are included in order:
 
 user choices/answers:
 
-- Bug fix
+- **Bug fix** - Fix a bug in existing code
 
 ### How urgent is this?
 
 user choices/answers:
 
-- [x] High
+- [x] **High** - Needs immediate attention
 - [x] Medium
 ```
 
@@ -132,15 +134,17 @@ type Answer = SingleAnswer | MultiAnswer;
 interface SingleAnswer {
   value: string;       // The option value (e.g., "go", "(other)")
   label: string;       // Display label (e.g., "Go", "Custom text")
+  description?: string; // Option description (if provided)
   wasCustom: boolean;  // True if user entered custom text via "Other"
   index?: number;      // 1-based position in sorted options
-  message?: string;     // Optional note added via Tab
+  message?: string;    // Optional note added via Tab
 }
 
 interface MultiAnswer {
-  values: string[];      // Array of option values
-  labels: string[];      // Array of display labels
-  wasCustom: boolean[];  // Per-item custom flag
+  values: string[];       // Array of option values
+  labels: string[];       // Array of display labels
+  descriptions: string[];  // Array of option descriptions
+  wasCustom: boolean[];   // Per-item custom flag
 }
 ```
 
@@ -160,8 +164,8 @@ interface MultiAnswer {
       { questionTopic: "Priority", prompt: "How urgent is this?", type: "multi", options: [...] }
     ],
     answers: [
-      { value: "fix", label: "Bug fix", wasCustom: false, index: 2 },
-      { values: ["high", "medium"], labels: ["High", "Medium"], wasCustom: [false, false] }
+      { value: "fix", label: "Bug fix", description: "Fix a bug in existing code", wasCustom: false, index: 2 },
+      { values: ["high", "medium"], labels: ["High", "Medium"], descriptions: ["Needs immediate attention", ""], wasCustom: [false, false] }
     ],
     cancelled: false
   }

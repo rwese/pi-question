@@ -21,6 +21,7 @@ export interface Question {
 export interface SingleAnswer {
 	value: string;
 	label: string;
+	description?: string;
 	wasCustom: boolean;
 	index?: number;
 	message?: string;
@@ -29,6 +30,7 @@ export interface SingleAnswer {
 export interface MultiAnswer {
 	values: string[];
 	labels: string[];
+	descriptions: string[];
 	wasCustom: boolean[];
 }
 

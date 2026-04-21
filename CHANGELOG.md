@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - README updated with comprehensive examples and return data structure documentation
+- **Answer output enhanced**: Answers now include descriptions from option definitions
+  - `SingleAnswer.description` captures option description
+  - `MultiAnswer.descriptions` array captures all selected option descriptions
+  - Markdown output shows `**Label** - Description` when description exists
+  - Backward compatible: missing descriptions default to empty string
 
 ## [0.2.0] - 2026-04-15
 
