@@ -66,7 +66,7 @@ After the user answers all questions, the tool returns **markdown output** that 
 
 ### Resulting Markdown Output
 
-![Questionnaire markdown output](docs/screenshot-questionnaire-output.png)
+![Questionnaire markdown output](docs/screenshot-output-multi.png)
 
 The markdown is rendered inline in the agent's context, showing headers for each question topic and the selected answers.
 
