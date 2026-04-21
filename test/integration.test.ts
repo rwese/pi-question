@@ -573,3 +573,274 @@ describe("Integration: Answer Index Accuracy", () => {
 		// This is documented as a known limitation - 'index' refers to sorted position
 	});
 });
+
+describe("Integration: recommended Field Isolation", () => {
+	/**
+	 * Verify that 'recommended' field is UI-only and never leaks to:
+	 * - Markdown output (injected into agent context)
+	 * - Answer details (returned to agent)
+	 * - renderResult output
+	 */
+
+	let registeredTool: any;
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		const mockPi = {
+			registerTool: vi.fn(),
+			registerCommand: vi.fn(),
+			sendMessage: vi.fn(),
+		} as any;
+		questionnaire(mockPi);
+		registeredTool = mockPi.registerTool.mock.calls[0][0];
+	});
+
+	it("should NOT include '(Recommended)' in markdown output for single-select", async () => {
+		const mockCustom = vi.fn().mockImplementation(() => {
+			return Promise.resolve({
+				questions: [
+					{
+						questionTopic: "Language",
+						prompt: "Choose language",
+						type: "single",
+						options: [
+							{ value: "go", label: "Go" },
+							{ value: "rust", label: "Rust", recommended: true },
+						],
+					},
+				],
+				answers: [
+					{ value: "rust", label: "Rust", wasCustom: false, index: 1 },
+				],
+				cancelled: false,
+			} as QuestionnaireResult);
+		});
+
+		const result = await registeredTool.execute(
+			"call-id",
+			{
+				questions: [
+					{
+						questionTopic: "Language",
+						prompt: "Choose language",
+						options: [
+							{ value: "go", label: "Go" },
+							{ value: "rust", label: "Rust", recommended: true },
+						],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
+		);
+
+		const markdown = result.content[0].text;
+
+		// Should contain the answer
+		expect(markdown).toContain("- Rust");
+
+		// Should NOT contain '(Recommended)' or 'Recommended' anywhere in markdown
+		expect(markdown).not.toContain("(Recommended)");
+		expect(markdown).not.toContain("Recommended");
+	});
+
+	it("should NOT include '(Recommended)' in markdown output for multi-select", async () => {
+		const mockCustom = vi.fn().mockImplementation(() => {
+			return Promise.resolve({
+				questions: [
+					{
+						questionTopic: "Tools",
+						prompt: "Select tools",
+						type: "multi",
+						options: [
+							{ value: "git", label: "Git" },
+							{ value: "docker", label: "Docker", recommended: true },
+							{ value: "k8s", label: "Kubernetes" },
+						],
+					},
+				],
+				answers: [
+					{
+						values: ["docker", "k8s"],
+						labels: ["Docker", "Kubernetes"],
+						wasCustom: [false, false],
+					},
+				],
+				cancelled: false,
+			} as QuestionnaireResult);
+		});
+
+		const result = await registeredTool.execute(
+			"call-id",
+			{
+				questions: [
+					{
+						questionTopic: "Tools",
+						type: "multi",
+						prompt: "Select tools",
+						options: [
+							{ value: "git", label: "Git" },
+							{ value: "docker", label: "Docker", recommended: true },
+							{ value: "k8s", label: "Kubernetes" },
+						],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
+		);
+
+		const markdown = result.content[0].text;
+
+		// Should contain the answers
+		expect(markdown).toContain("- [x] Docker");
+		expect(markdown).toContain("- [x] Kubernetes");
+
+		// Should NOT contain '(Recommended)' or 'Recommended' anywhere in markdown
+		expect(markdown).not.toContain("(Recommended)");
+		expect(markdown).not.toContain("Recommended");
+	});
+
+	it("should NOT include 'recommended' metadata in details.answers", async () => {
+		const mockCustom = vi.fn().mockImplementation(() => {
+			return Promise.resolve({
+				questions: [
+					{
+						questionTopic: "Language",
+						prompt: "Choose language",
+						type: "single",
+						options: [
+							{ value: "go", label: "Go", recommended: true },
+						],
+					},
+				],
+				answers: [
+					{ value: "go", label: "Go", wasCustom: false, index: 1 },
+				],
+				cancelled: false,
+			} as QuestionnaireResult);
+		});
+
+		const result = await registeredTool.execute(
+			"call-id",
+			{
+				questions: [
+					{
+						questionTopic: "Language",
+						prompt: "Choose language",
+						options: [{ value: "go", label: "Go", recommended: true }],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
+		);
+
+		const answer = result.details.answers[0] as SingleAnswer;
+
+		// Answer should have valid fields
+		expect(answer).toHaveProperty("value");
+		expect(answer).toHaveProperty("label");
+		expect(answer).toHaveProperty("wasCustom");
+		expect(answer).toHaveProperty("index");
+
+		// Answer should NOT have 'recommended' property
+		expect(answer).not.toHaveProperty("recommended");
+
+		// Verify no extra properties leak
+		const allowedKeys = ["value", "label", "wasCustom", "index", "message"];
+		const actualKeys = Object.keys(answer);
+		const unexpectedKeys = actualKeys.filter((k) => !allowedKeys.includes(k));
+		expect(unexpectedKeys).toHaveLength(0);
+	});
+
+	it("should NOT include 'recommended' in renderResult output", () => {
+		const mockTheme = {
+			fg: vi.fn().mockReturnValue(""),
+			bg: vi.fn().mockReturnValue(""),
+			bold: vi.fn().mockImplementation((t: string) => t),
+		};
+
+		const result = {
+			content: [{ type: "text" as const, text: "test" }],
+			details: {
+				questions: [
+					{
+						questionTopic: "Language",
+						prompt: "Choose language",
+						type: "single",
+						options: [
+							{ value: "go", label: "Go" },
+							{ value: "rust", label: "Rust", recommended: true },
+						],
+					},
+				],
+				answers: [{ value: "rust", label: "Rust", wasCustom: false, index: 1 }],
+				cancelled: false,
+			} as QuestionnaireResult,
+		};
+
+		const rendered = registeredTool.renderResult(result, {}, mockTheme, {});
+
+		// Should contain the answer
+		expect(rendered.text).toContain("- Rust");
+
+		// Should NOT contain 'Recommended' in rendered output
+		expect(rendered.text).not.toContain("Recommended");
+		expect(rendered.text).not.toContain("(Recommended)");
+	});
+
+	it("should preserve correct answer even when recommended is the only selected option", async () => {
+		const mockCustom = vi.fn().mockImplementation(() => {
+			return Promise.resolve({
+				questions: [
+					{
+						questionTopic: "Choice",
+						prompt: "Pick one",
+						type: "single",
+						options: [
+							{ value: "a", label: "Option A" },
+							{ value: "b", label: "Option B", recommended: true },
+							{ value: "c", label: "Option C" },
+						],
+					},
+				],
+				// User accepted the recommended option B
+				answers: [{ value: "b", label: "Option B", wasCustom: false, index: 2 }],
+				cancelled: false,
+			} as QuestionnaireResult);
+		});
+
+		const result = await registeredTool.execute(
+			"call-id",
+			{
+				questions: [
+					{
+						questionTopic: "Choice",
+						prompt: "Pick one",
+						options: [
+							{ value: "a", label: "Option A" },
+							{ value: "b", label: "Option B", recommended: true },
+							{ value: "c", label: "Option C" },
+						],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() } }
+		);
+
+		// Answer should be correct
+		expect((result.details.answers[0] as SingleAnswer).value).toBe("b");
+		expect((result.details.answers[0] as SingleAnswer).label).toBe("Option B");
+
+		// Markdown should show clean label only
+		expect(result.content[0].text).toContain("- Option B");
+		expect(result.content[0].text).not.toContain("(Recommended)");
+		expect(result.content[0].text).not.toContain("Recommended");
+	});
+});
