@@ -8,6 +8,9 @@ const editorCalls = {
 	render: [] as string[][],
 };
 
+// Simple parseKey mock
+const parseKey = (data: string) => data === 'n' ? 'n' : data;
+
 vi.mock("@mariozechner/pi-coding-agent", () => ({
 	Editor: vi.fn(),
 	Key: {
@@ -27,6 +30,7 @@ vi.mock("@mariozechner/pi-coding-agent", () => ({
 }));
 
 vi.mock("@mariozechner/pi-tui", () => ({
+	parseKey: (data: string) => data === 'n' ? 'n' : data,
 	Editor: vi.fn().mockImplementation(() => {
 		let onSubmitCallback: ((value: string) => void) | null = null;
 		let currentText = "";
@@ -245,61 +249,6 @@ describe("Other Option - Regression Tests", () => {
 		});
 	});
 
-	describe("Multi-Select: Other Option via Tab", () => {
-		it("Tab in multi-select should enter message mode for Other", async () => {
-			const mockCustom = setupMock();
-
-			const resultPromise = registeredTool.execute(
-				"call-id",
-				{
-					questions: [
-						{
-							questionTopic: "Tools",
-							prompt: "Select your tools",
-							type: "multi",
-							options: [
-								{ value: "git", label: "Git" },
-								{ value: "vim", label: "Vim" },
-							],
-						},
-					],
-				},
-				new AbortController().signal,
-				vi.fn(),
-				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
-			);
-
-			await new Promise((r) => setTimeout(r, 10));
-
-			// Tab should enter message mode
-			handlers.handleInput("tab");
-
-			// Verify message mode is active (shows "Add note" prompt)
-			const rendered = handlers.render(80);
-			expect(rendered.some((line: string) => line.includes("Add note"))).toBe(true);
-
-			// Type a custom note
-			handlers.handleInput("D");
-			handlers.handleInput("o");
-			handlers.handleInput("c");
-			handlers.handleInput("k");
-			handlers.handleInput("e");
-			handlers.handleInput("r");
-
-			expect(editorCalls.getText).toBe("Docker");
-
-			// Submit with Tab (which saves the note)
-			handlers.handleInput("tab");
-
-			const result = await resultPromise;
-
-			expect(result.details.cancelled).toBe(false);
-			expect(result.details.answers).toHaveLength(1);
-			const answer = result.details.answers[0] as any;
-			expect(answer.items.some(i => i.value === '(other)' && i.wasCustom)).toBe(true);
-    expect(answer.items.some(i => i.label === 'Docker')).toBe(true);
-		});
-	});
 
 	describe("Regression: Other option should always be selectable", () => {
 		it("Other should be selectable even with no regular options", async () => {

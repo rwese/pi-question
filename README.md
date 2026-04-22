@@ -11,7 +11,6 @@ Unified question tool for the pi coding agent with single/multi-question support
 - **Multi-select questions**: Checkbox-style selection for multiple answers
 - **Per-item notes**: Press (n) on any selected item to add a note (multi-select only)
 - **Recommended options**: Pre-select and highlight recommended choices
-- **Optional notes**: Add context to the entire answer via Tab key
 - **Custom input**: "Other" option with inline text editor for free-form input
 - **Multi-question support**: Tab bar interface for sequential questioning
 - **Answer review**: Summary screen before final submission
@@ -268,7 +267,6 @@ A `questionnaire-cancelled` message is also sent to the agent.
 | `Enter` | Select option + advance |
 | `Space` | Toggle option selection (multi) |
 | `(n)` | Add note to selected option (multi) |
-| `Tab` | Add note to answer |
 | `Escape` | Cancel entire questionnaire |
 
 ## Schema

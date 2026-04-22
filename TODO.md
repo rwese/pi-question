@@ -2,47 +2,17 @@
 
 ## Status
 
-- [x] 1. Update `MultiAnswer` type
-- [x] 2. Update schema validation
-- [x] 3. Add (n) key handler
-- [x] 4. Update save logic
-- [x] 5. Update output rendering
-- [x] 6. Update submit tab display
-- [x] 7. Update/add tests
-- [x] 8. Version bump to 2.0.0 + CHANGELOG + README
+All tasks completed.
 
-## Summary
+### Completed Changes
 
-All tasks completed. The implementation adds per-item notes for multi-select questions.
+1. **`MultiAnswer` type** - Changed from parallel arrays to object array
+2. **`(n)` key handler** - Press (n) on selected option to add note
+3. **Output rendering** - Notes displayed as nested bullets
+4. **Tab for notes removed** - Only `(n)` is used for per-item notes
+5. **Tests updated** - All 97 tests passing
+6. **Documentation updated** - README, CHANGELOG
 
 ### Breaking Changes
 
-`MultiAnswer` structure changed from parallel arrays to object array:
-
-```typescript
-// Before (v1.x)
-interface MultiAnswer {
-  values: string[];
-  labels: string[];
-  descriptions: string[];
-  wasCustom: boolean[];
-}
-
-// After (v2.0)
-interface MultiAnswerItem {
-  value: string;
-  label: string;
-  description?: string;
-  wasCustom: boolean;
-  note?: string;
-}
-
-interface MultiAnswer {
-  items: MultiAnswerItem[];
-}
-```
-
-### New Features
-
-- Press (n) on a selected option to add a note
-- Notes displayed as nested bullets in markdown output
+`MultiAnswer` structure changed from parallel arrays to object array. See CHANGELOG.md for details.

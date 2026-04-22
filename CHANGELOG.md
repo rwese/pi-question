@@ -48,6 +48,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Per-item notes for multi-select**: Press (n) on a selected option to add a note
 - **Nested note output**: Notes displayed as indented `Note: ...` under each item
 - **Input modal for notes**: Uses pi-tui Editor for note entry
+
+### Removed
+
+- **Tab for notes**: Tab key no longer adds notes to answers. Use (n) key instead for per-item notes
 - **Help text updated**: Shows (n)ote hint for multi-select options
 
 ### Changed

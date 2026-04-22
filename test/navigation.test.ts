@@ -267,14 +267,12 @@ describe("Navigation - Must Answer Requirement", () => {
 	});
 
 	describe("Tab Navigation: Cannot Skip with Tab", () => {
-		it("Tab does not skip questions - it enters message mode", async () => {
+		it("Tab does not skip questions (Tab for notes removed)", async () => {
 			const mockPi2 = { registerTool: vi.fn(), sendMessage: vi.fn(), registerCommand: vi.fn() };
 			questionnaire(mockPi2);
 			const tool = mockPi2.registerTool.mock.calls[0][0];
 
-			// Tab should enter message mode, not skip the question
-			let handleInputCalled = false;
-			let messageModeEntered = false;
+			// Tab no longer used for notes (v2.0)
 
 			mockCustom = vi.fn().mockImplementation((callback: any) => {
 				const mockEditor = {
