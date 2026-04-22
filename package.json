@@ -69,7 +69,6 @@
     "format": "prettier --write extensions/",
     "typecheck": "tsc --noEmit",
     "validate": "npm run typecheck && npm run lint && npm run test",
-    "prepare": "husky",
     "version:patch": "npm version patch -m 'chore: Bump patch version' && git push && git push --tags",
     "version:minor": "npm version minor -m 'feat: Bump minor version' && git push && git push --tags",
     "version:major": "npm version major -m 'BREAKING CHANGE: Major version bump' && git push && git push --tags",
