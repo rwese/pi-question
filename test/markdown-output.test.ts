@@ -201,10 +201,7 @@ describe("Markdown Output", () => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Tools", prompt: "Select your tools", type: "multi", options: [] }],
 					answers: [{
-						values: ["git", "docker", "tmux"],
-						labels: ["Git", "Docker", "tmux"],
-						descriptions: [],
-						wasCustom: [false, false, false],
+						items: [ { value: "git", label: 'Git', wasCustom: false }, { value: "docker", label: 'Docker', wasCustom: false }, { value: "tmux", label: 'tmux', wasCustom: false } ],
 					}],
 					cancelled: false,
 				});
@@ -247,10 +244,7 @@ describe("Markdown Output", () => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Features", prompt: "Select features", type: "multi", options: [] }],
 					answers: [{
-						values: [],
-						labels: [],
-						descriptions: [],
-						wasCustom: [],
+						items: [],
 					}],
 					cancelled: false,
 				});
@@ -291,10 +285,7 @@ describe("Markdown Output", () => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Lang", prompt: "Select languages", type: "multi", options: [] }],
 					answers: [{
-						values: ["typescript", "(other)"],
-						labels: ["TypeScript", "Zig"],
-						descriptions: [],
-						wasCustom: [false, true],
+						items: [ { value: "typescript", label: 'TypeScript', wasCustom: false }, { value: "(other)", label: 'Zig', wasCustom: true } ],
 					}],
 					cancelled: false,
 				});
@@ -341,9 +332,7 @@ describe("Markdown Output", () => {
 					],
 					answers: [
 						{ value: "go", label: "Go", wasCustom: false, index: 1 },
-						{ values: ["git", "docker"], labels: ["Git", "Docker"],
- descriptions: [],
- wasCustom: [false, false] },
+						{ items: [ { value: "git", label: 'Git', wasCustom: false }, { value: "docker", label: 'Docker', wasCustom: false } ] },
 					],
 					cancelled: false,
 				});
@@ -536,9 +525,7 @@ describe("Markdown Output", () => {
 			const mockCustom = vi.fn().mockImplementation(() => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
-					answers: [{ values: ["git"], labels: ["Git"],
- descriptions: [],
- wasCustom: [false] }],
+					answers: [{ items: [ { value: "git", label: 'Git', wasCustom: false } ] }],
 					cancelled: false,
 				});
 			});
@@ -552,8 +539,9 @@ describe("Markdown Output", () => {
 			);
 
 			expect(result.details.answers).toHaveLength(1);
-			expect(result.details.answers[0]).toHaveProperty("values");
-			expect(result.details.answers[0]).toHaveProperty("labels");
+			const multiAnswer = result.details.answers[0] as MultiAnswer;
+    expect(multiAnswer.items).toBeDefined();
+    expect(multiAnswer.items.length).toBeGreaterThan(0);
 		});
 	});
 
@@ -713,10 +701,7 @@ describe("renderResult", () => {
 				details: {
 					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
 					answers: [{
-						values: ["git", "docker"],
-						labels: ["Git", "Docker"],
-						descriptions: [],
-						wasCustom: [false, false],
+						items: [ { value: "git", label: 'Git', wasCustom: false }, { value: "docker", label: 'Docker', wasCustom: false } ],
 					}],
 					cancelled: false,
 				},
@@ -744,10 +729,7 @@ describe("renderResult", () => {
 				details: {
 					questions: [{ questionTopic: "Opts", prompt: "Select options", type: "multi", options: [] }],
 					answers: [{
-						values: [],
-						labels: [],
-						descriptions: [],
-						wasCustom: [],
+						items: [],
 					}],
 					cancelled: false,
 				},

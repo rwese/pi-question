@@ -2,6 +2,17 @@
 
 import { Type } from '@sinclair/typebox';
 
+export const MultiAnswerItemSchema = Type.Object(
+	{
+		value: Type.String({ description: 'The option value' }),
+		label: Type.String({ description: 'Display label' }),
+		description: Type.Optional(Type.String({ description: 'Option description' })),
+		wasCustom: Type.Boolean({ description: 'True if custom text entered' }),
+		note: Type.Optional(Type.String({ description: 'User-provided note for this item' })),
+	},
+	{ additionalProperties: false },
+);
+
 export const QuestionOptionSchema = Type.Object(
 	{
 		value: Type.String({ description: 'The value returned when selected' }),

@@ -9,6 +9,7 @@ Unified question tool for the pi coding agent with single/multi-question support
 
 - **Single-select questions**: Radio-style selection with keyboard navigation
 - **Multi-select questions**: Checkbox-style selection for multiple answers
+- **Per-item notes**: Press (n) on any selected item to add a note (multi-select only)
 - **Recommended options**: Pre-select and highlight recommended choices
 - **Optional notes**: Add context to the entire answer via Tab key
 - **Custom input**: "Other" option with inline text editor for free-form input
@@ -96,13 +97,14 @@ When a single-select question is answered, the output includes the question prom
 
 ### Multi-Select Output
 
-Multi-select questions use checkbox notation (`[x]`) to show selected items:
+Multi-select questions use checkbox notation (`[x]`) to show selected items. Notes added via (n) key are shown as nested bullets:
 
 ```markdown
 ### How urgent is this?
 
 - [x] **High** - Needs immediate attention
 - [x] Medium
+  Note: Can be addressed in next sprint
 ```
 
 ### Full Questionnaire Output
@@ -146,11 +148,16 @@ interface SingleAnswer {
   message?: string;    // Optional note added via Tab
 }
 
+interface MultiAnswerItem {
+  value: string;       // The option value
+  label: string;       // Display label
+  description?: string; // Option description (if provided)
+  wasCustom: boolean;  // True if custom text entered
+  note?: string;       // User-provided note (added via (n) key)
+}
+
 interface MultiAnswer {
-  values: string[];       // Array of option values
-  labels: string[];       // Array of display labels
-  descriptions: string[];  // Array of option descriptions
-  wasCustom: boolean[];   // Per-item custom flag
+  items: MultiAnswerItem[]; // Array of selected items with notes
 }
 ```
 
@@ -171,7 +178,10 @@ interface MultiAnswer {
     ],
     answers: [
       { value: "fix", label: "Bug fix", description: "Fix a bug in existing code", wasCustom: false, index: 2 },
-      { values: ["high", "medium"], labels: ["High", "Medium"], descriptions: ["Needs immediate attention", ""], wasCustom: [false, false] }
+      { items: [
+        { value: "high", label: "High", description: "Needs immediate attention", wasCustom: false },
+        { value: "medium", label: "Medium", wasCustom: false }
+      ] }
     ],
     cancelled: false
   }
@@ -257,6 +267,7 @@ A `questionnaire-cancelled` message is also sent to the agent.
 | `←` / `→` | Navigate questions (multi) |
 | `Enter` | Select option + advance |
 | `Space` | Toggle option selection (multi) |
+| `(n)` | Add note to selected option (multi) |
 | `Tab` | Add note to answer |
 | `Escape` | Cancel entire questionnaire |
 

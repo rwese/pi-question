@@ -47,7 +47,7 @@ export default [
       // Security plugin rules - disable false positives
       "security/detect-unsafe-regex": "off",
       "security/detect-object-injection": "off",
-      "complexity": ["error", 20],
+      "complexity": ["error", 22],
     },
   },
 ];

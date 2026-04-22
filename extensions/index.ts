@@ -15,6 +15,7 @@ import {
 	type EditorTheme,
 	Key,
 	matchesKey,
+	parseKey,
 	Text,
 	truncateToWidth,
 } from '@mariozechner/pi-tui';
@@ -49,11 +50,16 @@ interface SingleAnswer {
 	message?: string;
 }
 
+interface MultiAnswerItem {
+	value: string;
+	label: string;
+	description?: string;
+	wasCustom: boolean;
+	note?: string;
+}
+
 interface MultiAnswer {
-	values: string[];
-	labels: string[];
-	descriptions: string[];
-	wasCustom: boolean[];
+	items: MultiAnswerItem[];
 }
 
 type Answer = SingleAnswer | MultiAnswer;
@@ -207,9 +213,13 @@ export default function question(pi: ExtensionAPI) {
 				let messageMode = false;
 				let repromptMode = false;
 				let repromptMessage = '';
+				let noteOptionIndex: number | null = null;
 
 				// For multi-select: track which options are selected
 				const selectedOptions = new Map<number, Set<number>>();
+
+				// For multi-select: track notes for selected items
+				const selectedNotes = new Map<number, Map<number, string>>();
 
 				// Sort options: recommended first, preserve order within groups
 				const sortedQuestions: Question[] = questions.map((q) => ({
@@ -373,50 +383,48 @@ export default function question(pi: ExtensionAPI) {
 					answers.set(questionIndex, answer);
 				}
 
-				function saveMultiAnswer(
-					questionIndex: number,
-					values: string[],
-					labels: string[],
-					descriptions: string[],
-					wasCustom: boolean[],
-				) {
-					const answer: MultiAnswer = {
-						values,
-						labels,
-						descriptions,
-						wasCustom,
-					};
+				function saveMultiAnswer(questionIndex: number, items: MultiAnswerItem[]) {
+					const answer: MultiAnswer = { items };
 					answers.set(questionIndex, answer);
 				}
 
-				function getSelectedValues(): {
-					values: string[];
-					labels: string[];
-					descriptions: string[];
-					wasCustom: boolean[];
-				} {
+				function getSelectedItems(): MultiAnswerItem[] {
 					const q = currentQuestion();
 					if (!q || q.type !== 'multi') {
-						return { values: [], labels: [], descriptions: [], wasCustom: [] };
+						return [];
 					}
 					const selected = selectedOptions.get(currentTab);
-					if (!selected) {
-						return { values: [], labels: [], descriptions: [], wasCustom: [] };
+					if (!selected || selected.size === 0) {
+						return [];
 					}
-					const values: string[] = [];
-					const labels: string[] = [];
-					const descriptions: string[] = [];
-					const wasCustom: boolean[] = [];
+					const notes = selectedNotes.get(currentTab) || new Map();
+					const items: MultiAnswerItem[] = [];
 					for (const idx of selected) {
 						const opt = q.options[idx];
 						if (opt) {
-							values.push(opt.value);
-							labels.push(opt.label);
-							descriptions.push(opt.description || '');
-							wasCustom.push(false);
+							items.push({
+								value: opt.value,
+								label: opt.label,
+								description: opt.description,
+								wasCustom: false,
+								note: notes.get(idx),
+							});
 						}
 					}
-					return { values, labels, descriptions, wasCustom };
+					return items;
+				}
+
+				function setItemNote(optionIdx: number, note: string) {
+					let notes = selectedNotes.get(currentTab);
+					if (!notes) {
+						notes = new Map();
+						selectedNotes.set(currentTab, notes);
+					}
+					if (note.trim()) {
+						notes.set(optionIdx, note.trim());
+					} else {
+						notes.delete(optionIdx);
+					}
 				}
 
 				function showMessagePrompt(questionIndex: number, appended: boolean) {
@@ -448,6 +456,19 @@ export default function question(pi: ExtensionAPI) {
 					refresh();
 				}
 
+				function showNotePrompt(optionIdx: number) {
+					const q = currentQuestion();
+					if (!q || q.type !== 'multi') return;
+					const notes = selectedNotes.get(currentTab) || new Map();
+					const existingNote = notes.get(optionIdx) || '';
+					editor.setText(existingNote);
+					inputMode = true;
+					inputQuestionIndex = currentTab;
+					// Store which option we're adding a note to
+					noteOptionIndex = optionIdx;
+					refresh();
+				}
+
 				function submitPendingWithMessage(msg: string) {
 					if (!pendingOther) return;
 					const trimmedMsg = msg.trim();
@@ -455,22 +476,18 @@ export default function question(pi: ExtensionAPI) {
 					if (!q) return;
 
 					if (q.type === 'multi') {
-						const { values, labels, descriptions, wasCustom } = getSelectedValues();
+						const items = getSelectedItems();
 						if (pendingOther.appended) {
 							if (trimmedMsg) {
-								values.push(OTHER_INPUT);
-								labels.push(trimmedMsg);
-								descriptions.push('');
-								wasCustom.push(true);
+								items.push({
+									value: OTHER_INPUT,
+									label: trimmedMsg,
+									description: undefined,
+									wasCustom: true,
+								});
 							}
 						}
-						saveMultiAnswer(
-							pendingOther.index,
-							values,
-							labels,
-							descriptions,
-							wasCustom,
-						);
+						saveMultiAnswer(pendingOther.index, items);
 					} else {
 						// For single-select: save the currently highlighted option (not Other)
 						const opt = currentOptions()[optionIndex];
@@ -530,22 +547,16 @@ export default function question(pi: ExtensionAPI) {
 					if (!q) return;
 
 					if (q.type === 'multi') {
-						const { values, labels, descriptions, wasCustom } = getSelectedValues();
-						if (pendingOther.appended) {
-							if (values.length === 0) {
-								values.push(NO_CHOICE);
-								labels.push('(no choice)');
-								descriptions.push('');
-								wasCustom.push(false);
-							}
+						const items = getSelectedItems();
+						if (pendingOther.appended && items.length === 0) {
+							items.push({
+								value: NO_CHOICE,
+								label: '(no choice)',
+								description: undefined,
+								wasCustom: false,
+							});
 						}
-						saveMultiAnswer(
-							pendingOther.index,
-							values,
-							labels,
-							descriptions,
-							wasCustom,
-						);
+						saveMultiAnswer(pendingOther.index, items);
 					} else {
 						// For single-select: save the currently highlighted option (not Other)
 						const opt = currentOptions()[optionIndex];
@@ -584,6 +595,17 @@ export default function question(pi: ExtensionAPI) {
 						return;
 					}
 
+					// Handle note input for multi-select items
+					if (noteOptionIndex !== null && inputQuestionIndex !== null) {
+						setItemNote(noteOptionIndex, value.trim());
+						noteOptionIndex = null;
+						inputMode = false;
+						inputQuestionIndex = null;
+						editor.setText('');
+						refresh();
+						return;
+					}
+
 					if (inputQuestionIndex === null) return;
 					const trimmed = value.trim();
 					const q = questions[inputQuestionIndex];
@@ -595,18 +617,14 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					if (q.type === 'multi') {
-						const { values, labels, descriptions, wasCustom } = getSelectedValues();
-						values.push(OTHER_INPUT);
-						labels.push(trimmed);
-						descriptions.push('');
-						wasCustom.push(true);
-						saveMultiAnswer(
-							inputQuestionIndex,
-							values,
-							labels,
-							descriptions,
-							wasCustom,
-						);
+						const items = getSelectedItems();
+						items.push({
+							value: OTHER_INPUT,
+							label: trimmed,
+							description: undefined,
+							wasCustom: true,
+						});
+						saveMultiAnswer(inputQuestionIndex, items);
 					} else {
 						saveSingleAnswer(
 							inputQuestionIndex,
@@ -648,6 +666,7 @@ export default function question(pi: ExtensionAPI) {
 
 				function handleOtherInput(data: string) {
 					if (matchesKey(data, Key.escape)) {
+						noteOptionIndex = null;
 						inputMode = false;
 						inputQuestionIndex = null;
 						editor.setText('');
@@ -745,20 +764,23 @@ export default function question(pi: ExtensionAPI) {
 						if (opt.isOther) {
 							inputMode = true;
 							inputQuestionIndex = currentTab;
+							noteOptionIndex = null;
 							editor.setText('');
 							refresh();
 							return true;
 						}
 
 						if (isMultiQ) {
-							const { values, labels, descriptions, wasCustom } = getSelectedValues();
-							if (values.length === 0) {
-								values.push(NO_CHOICE);
-								labels.push('(no choice)');
-								descriptions.push('');
-								wasCustom.push(false);
+							const items = getSelectedItems();
+							if (items.length === 0) {
+								items.push({
+									value: NO_CHOICE,
+									label: '(no choice)',
+									description: undefined,
+									wasCustom: false,
+								});
 							}
-							saveMultiAnswer(currentTab, values, labels, descriptions, wasCustom);
+							saveMultiAnswer(currentTab, items);
 							advanceAfterAnswer();
 							return true;
 						}
@@ -809,9 +831,29 @@ export default function question(pi: ExtensionAPI) {
 					if (handleOptionNavigation(data)) return;
 					if (handleOptionSelection(data)) return;
 
+					// Handle (n) for adding note to current option in multi-select
+					if (handleNoteKey(data)) return;
+
 					if (matchesKey(data, Key.escape)) {
 						submit(true);
 					}
+				}
+
+				function handleNoteKey(data: string): boolean {
+					if (parseKey(data) !== 'n') return false;
+					const q = currentQuestion();
+					if (!q || q.type !== 'multi') return false;
+					const opt = currentOptions()[optionIndex];
+					if (!opt || opt.isOther || !isOptionSelected(optionIndex)) return false;
+					// Get the original index for the note mapping
+					const sortedQ = currentSortedQuestion();
+					if (!sortedQ) return false;
+					const originalOpt = sortedQ.options[optionIndex];
+					if (!originalOpt) return false;
+					const originalIdx = q.options.indexOf(originalOpt);
+					if (originalIdx === -1) return false;
+					showNotePrompt(originalIdx);
+					return true;
 				}
 
 				function renderTabs(add: (s: string) => void) {
@@ -894,7 +936,8 @@ export default function question(pi: ExtensionAPI) {
 					add(theme.fg('text', ` ${q.prompt}`));
 					lines.push('');
 					if (isMultiQ) {
-						const { labels } = getSelectedValues();
+						const items = getSelectedItems();
+						const labels = items.map((i) => i.label);
 						if (labels.length > 0) {
 							add(theme.fg('muted', ` Selected: ${labels.join(', ')}`));
 							lines.push('');
@@ -925,7 +968,8 @@ export default function question(pi: ExtensionAPI) {
 					lines.push('');
 
 					if (isMultiQ) {
-						const { labels } = getSelectedValues();
+						const items = getSelectedItems();
+						const labels = items.map((i) => i.label);
 						if (labels.length > 0) {
 							add(
 								theme.fg('muted', ` Selected: `) +
@@ -982,7 +1026,13 @@ export default function question(pi: ExtensionAPI) {
 							if (answer) {
 								if (question.type === 'multi') {
 									const multiAnswer = answer as MultiAnswer;
-									const valuesStr = multiAnswer.labels.join(', ') || '(none)';
+									const labels = multiAnswer.items.map((item) => {
+										if (item.note) {
+											return `${item.label} (${item.note})`;
+										}
+										return item.label;
+									});
+									const valuesStr = labels.join(', ') || '(none)';
 									add(
 										`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', valuesStr)}`,
 									);
@@ -1026,7 +1076,8 @@ export default function question(pi: ExtensionAPI) {
 					lines.push('');
 					if (isMultiQ) {
 						lines.push('');
-						const { labels } = getSelectedValues();
+						const items = getSelectedItems();
+						const labels = items.map((i) => i.label);
 						if (labels.length > 0) {
 							add(theme.fg('muted', ` Selected: ${labels.join(', ')}`));
 						} else {
@@ -1046,10 +1097,10 @@ export default function question(pi: ExtensionAPI) {
 					} else {
 						const help = isMulti
 							? isMultiQ
-								? ' ←→ navigate • ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
+								? ' ←→ navigate • ↑↓ select • Space☐ toggle • (n)ote • Tab↹ add note • Enter confirm • Esc cancel'
 								: ' ←→ navigate • ↑↓ select • Tab↹ add note • Enter confirm • Esc cancel'
 							: isMultiQ
-								? ' ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
+								? ' ↑↓ select • Space☐ toggle • (n)ote • Tab↹ add note • Enter confirm • Esc cancel'
 								: ' ↑↓ navigate • Enter select • Tab↹ add note • Esc cancel';
 						add(theme.fg('dim', help));
 					}
@@ -1129,18 +1180,19 @@ export default function question(pi: ExtensionAPI) {
 
 				lines.push(`### ${q.prompt}`);
 
-				if (q.type === 'multi' && 'labels' in answer && Array.isArray(answer.labels)) {
+				if (q.type === 'multi' && 'items' in answer && Array.isArray(answer.items)) {
 					const multiAnswer = answer as MultiAnswer;
-					for (let j = 0; j < multiAnswer.labels.length; j++) {
-						const label = multiAnswer.labels[j];
-						const description = multiAnswer.descriptions[j];
-						if (description) {
-							lines.push(`- [x] **${label}** - ${description}`);
+					for (const item of multiAnswer.items) {
+						if (item.description) {
+							lines.push(`- [x] **${item.label}** - ${item.description}`);
 						} else {
-							lines.push(`- [x] ${label}`);
+							lines.push(`- [x] ${item.label}`);
+						}
+						if (item.note) {
+							lines.push(`  Note: ${item.note}`);
 						}
 					}
-					if (multiAnswer.labels.length === 0) {
+					if (multiAnswer.items.length === 0) {
 						lines.push(`- (no selection)`);
 					}
 				} else {
@@ -1197,18 +1249,19 @@ export default function question(pi: ExtensionAPI) {
 
 				lines.push(`### ${q.prompt}`);
 
-				if (q.type === 'multi' && 'labels' in answer && Array.isArray(answer.labels)) {
+				if (q.type === 'multi' && 'items' in answer && Array.isArray(answer.items)) {
 					const multiAnswer = answer as MultiAnswer;
-					for (let j = 0; j < multiAnswer.labels.length; j++) {
-						const label = multiAnswer.labels[j];
-						const description = multiAnswer.descriptions[j];
-						if (description) {
-							lines.push(`- [x] **${label}** - ${description}`);
+					for (const item of multiAnswer.items) {
+						if (item.description) {
+							lines.push(`- [x] **${item.label}** - ${item.description}`);
 						} else {
-							lines.push(`- [x] ${label}`);
+							lines.push(`- [x] ${item.label}`);
+						}
+						if (item.note) {
+							lines.push(`  Note: ${item.note}`);
 						}
 					}
-					if (multiAnswer.labels.length === 0) {
+					if (multiAnswer.items.length === 0) {
 						lines.push(`- (no selection)`);
 					}
 				} else {
