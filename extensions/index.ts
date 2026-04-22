@@ -70,11 +70,6 @@ interface QuestionnaireResult {
 	cancelled: boolean;
 }
 
-interface PendingOther {
-	index: number;
-	appended: boolean; // true if other text will be appended to existing selection
-}
-
 // Error types
 interface QuestionnaireError {
 	code: 'MULTIPLE_RECOMMENDED' | 'INVALID_TYPE' | 'EMPTY_OPTIONS';
@@ -209,8 +204,6 @@ export default function question(pi: ExtensionAPI) {
 				let inputQuestionIndex: number | null = null;
 				let cachedLines: string[] | undefined;
 				const answers = new Map<number, Answer>();
-				let pendingOther: PendingOther | null = null;
-				let messageMode = false;
 				let repromptMode = false;
 				let repromptMessage = '';
 				let noteOptionIndex: number | null = null;
@@ -427,35 +420,6 @@ export default function question(pi: ExtensionAPI) {
 					}
 				}
 
-				function showMessagePrompt(questionIndex: number, appended: boolean) {
-					pendingOther = { index: questionIndex, appended };
-					messageMode = true;
-					// Pre-populate editor with existing note if editing
-					const existingAnswer = answers.get(questionIndex);
-					if (existingAnswer && 'message' in existingAnswer && existingAnswer.message) {
-						editor.setText(existingAnswer.message);
-					} else {
-						editor.setText('');
-					}
-					// Pre-save the current selection for single-select
-					// This ensures the answer is recorded even if user skips the note
-					const q = questions[questionIndex];
-					if (q && q.type !== 'multi') {
-						const opt = currentOptions()[optionIndex];
-						if (opt && !opt.isOther) {
-							saveSingleAnswer(
-								questionIndex,
-								opt.value,
-								opt.label,
-								opt.description,
-								false,
-								optionIndex + 1,
-							);
-						}
-					}
-					refresh();
-				}
-
 				function showNotePrompt(optionIdx: number) {
 					const q = currentQuestion();
 					if (!q || q.type !== 'multi') return;
@@ -469,132 +433,8 @@ export default function question(pi: ExtensionAPI) {
 					refresh();
 				}
 
-				function submitPendingWithMessage(msg: string) {
-					if (!pendingOther) return;
-					const trimmedMsg = msg.trim();
-					const q = questions[pendingOther.index];
-					if (!q) return;
-
-					if (q.type === 'multi') {
-						const items = getSelectedItems();
-						if (pendingOther.appended) {
-							if (trimmedMsg) {
-								items.push({
-									value: OTHER_INPUT,
-									label: trimmedMsg,
-									description: undefined,
-									wasCustom: true,
-								});
-							}
-						}
-						saveMultiAnswer(pendingOther.index, items);
-					} else {
-						// For single-select: save the currently highlighted option (not Other)
-						const opt = currentOptions()[optionIndex];
-						if (opt && !opt.isOther) {
-							if (trimmedMsg) {
-								saveSingleAnswer(
-									pendingOther.index,
-									opt.value,
-									opt.label,
-									opt.description,
-									false,
-									optionIndex + 1,
-									trimmedMsg,
-								);
-							} else {
-								saveSingleAnswer(
-									pendingOther.index,
-									opt.value,
-									opt.label,
-									opt.description,
-									false,
-									optionIndex + 1,
-									undefined,
-								);
-							}
-						} else if (trimmedMsg) {
-							saveSingleAnswer(
-								pendingOther.index,
-								OTHER_INPUT,
-								trimmedMsg,
-								undefined,
-								true,
-								undefined,
-								trimmedMsg,
-							);
-						} else {
-							saveSingleAnswer(
-								pendingOther.index,
-								NO_CHOICE,
-								'(no choice)',
-								undefined,
-								false,
-								undefined,
-								undefined,
-							);
-						}
-					}
-
-					pendingOther = null;
-					messageMode = false;
-					advanceAfterAnswer();
-				}
-
-				function skipMessageAndSubmit() {
-					if (!pendingOther) return;
-					const q = questions[pendingOther.index];
-					if (!q) return;
-
-					if (q.type === 'multi') {
-						const items = getSelectedItems();
-						if (pendingOther.appended && items.length === 0) {
-							items.push({
-								value: NO_CHOICE,
-								label: '(no choice)',
-								description: undefined,
-								wasCustom: false,
-							});
-						}
-						saveMultiAnswer(pendingOther.index, items);
-					} else {
-						// For single-select: save the currently highlighted option (not Other)
-						const opt = currentOptions()[optionIndex];
-						if (opt && !opt.isOther) {
-							saveSingleAnswer(
-								pendingOther.index,
-								opt.value,
-								opt.label,
-								opt.description,
-								false,
-								optionIndex + 1,
-								undefined,
-							);
-						} else {
-							saveSingleAnswer(
-								pendingOther.index,
-								NO_CHOICE,
-								'(no choice)',
-								undefined,
-								false,
-								undefined,
-								undefined,
-							);
-						}
-					}
-
-					pendingOther = null;
-					messageMode = false;
-					advanceAfterAnswer();
-				}
-
 				// Editor submit callback
 				editor.onSubmit = (value) => {
-					if (messageMode && pendingOther) {
-						submitPendingWithMessage(value);
-						return;
-					}
-
 					// Handle note input for multi-select items
 					if (noteOptionIndex !== null && inputQuestionIndex !== null) {
 						setItemNote(noteOptionIndex, value.trim());
@@ -642,27 +482,6 @@ export default function question(pi: ExtensionAPI) {
 					editor.setText('');
 					advanceAfterAnswer();
 				};
-
-				function handleMessageInput(data: string) {
-					if (matchesKey(data, Key.escape)) {
-						pendingOther = null;
-						messageMode = false;
-						refresh();
-						return true;
-					}
-					if (matchesKey(data, Key.tab)) {
-						const text = editor.getText();
-						if (text.trim()) {
-							submitPendingWithMessage(text);
-						} else {
-							skipMessageAndSubmit();
-						}
-						return true;
-					}
-					editor.handleInput(data);
-					refresh();
-					return true;
-				}
 
 				function handleOtherInput(data: string) {
 					if (matchesKey(data, Key.escape)) {
@@ -797,24 +616,10 @@ export default function question(pi: ExtensionAPI) {
 						return true;
 					}
 
-					if (matchesKey(data, Key.tab)) {
-						const opt = currentOptions()[optionIndex];
-						if (!opt) return false;
-						if (isMultiQ && !opt.isOther) {
-							toggleOption(optionIndex);
-						}
-						showMessagePrompt(currentTab, isMultiQ);
-						return true;
-					}
-
 					return false;
 				}
 
 				function handleInput(data: string) {
-					if (messageMode) {
-						if (handleMessageInput(data)) return;
-					}
-
 					if (inputMode) {
 						if (handleOtherInput(data)) return;
 					}
@@ -956,54 +761,6 @@ export default function question(pi: ExtensionAPI) {
 					add(theme.fg('dim', ' Enter to submit • Esc to cancel'));
 				}
 
-				function renderMessageMode(
-					lines: string[],
-					width: number,
-					q: Question,
-					opts: RenderOption[],
-					isMultiQ: boolean,
-					add: (s: string) => void,
-				) {
-					add(theme.fg('text', ` ${q.prompt}`));
-					lines.push('');
-
-					if (isMultiQ) {
-						const items = getSelectedItems();
-						const labels = items.map((i) => i.label);
-						if (labels.length > 0) {
-							add(
-								theme.fg('muted', ` Selected: `) +
-									theme.fg('accent', labels.join(', ')),
-							);
-						} else {
-							add(theme.fg('muted', ` No options selected`));
-						}
-					} else {
-						const selectedOpt = opts[optionIndex];
-						const savedAnswer = answers.get(currentTab);
-						let noteDisplay = '';
-						if (savedAnswer && 'message' in savedAnswer && savedAnswer.message) {
-							noteDisplay = ` ${theme.fg('success', `(note: "${savedAnswer.message}")`)}`;
-						}
-						add(
-							theme.fg('muted', ` Selected: `) +
-								theme.fg('accent', selectedOpt?.label || '') +
-								noteDisplay,
-						);
-					}
-					lines.push('');
-					add(theme.fg('muted', ' Add note (optional):'));
-					const typedText = editor.getText();
-					if (typedText) {
-						add(` ${typedText}`);
-					}
-					for (const line of editor.render(width - 2)) {
-						add(` ${line}`);
-					}
-					lines.push('');
-					add(theme.fg('dim', ' Enter/Tab save • Esc discard'));
-				}
-
 				function renderSubmitTab(lines: string[], add: (s: string) => void) {
 					if (repromptMode) {
 						add(theme.fg('warning', ` ⚠ ${repromptMessage}`));
@@ -1097,11 +854,11 @@ export default function question(pi: ExtensionAPI) {
 					} else {
 						const help = isMulti
 							? isMultiQ
-								? ' ←→ navigate • ↑↓ select • Space☐ toggle • (n)ote • Tab↹ add note • Enter confirm • Esc cancel'
-								: ' ←→ navigate • ↑↓ select • Tab↹ add note • Enter confirm • Esc cancel'
+								? ' ←→ navigate • ↑↓ select • Space☐ toggle • (n)ote • Enter confirm • Esc cancel'
+								: ' ←→ navigate • ↑↓ select • Enter confirm • Esc cancel'
 							: isMultiQ
-								? ' ↑↓ select • Space☐ toggle • (n)ote • Tab↹ add note • Enter confirm • Esc cancel'
-								: ' ↑↓ navigate • Enter select • Tab↹ add note • Esc cancel';
+								? ' ↑↓ select • Space☐ toggle • (n)ote • Enter confirm • Esc cancel'
+								: ' ↑↓ navigate • Enter select • Esc cancel';
 						add(theme.fg('dim', help));
 					}
 				}
@@ -1125,8 +882,6 @@ export default function question(pi: ExtensionAPI) {
 
 					if (inputMode && q) {
 						renderInputMode(lines, width, q, opts, isMultiQ, add);
-					} else if (messageMode && q) {
-						renderMessageMode(lines, width, q, opts, isMultiQ, add);
 					} else if (currentTab === questions.length) {
 						renderSubmitTab(lines, add);
 					} else if (q) {
@@ -1134,7 +889,7 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					lines.push('');
-					if (!inputMode && !messageMode) {
+					if (!inputMode) {
 						renderHelpText(isMulti, isMultiQ, repromptMode, add);
 					}
 					add(theme.fg('accent', '─'.repeat(width)));
