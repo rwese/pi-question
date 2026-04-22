@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Quality gates expanded**:
+  - Mutation checking: `no-param-reassign`, `no-proto`, `no-new-object`, `prefer-const`
+  - Complexity monitoring: `complexity` rule (disabled, tracked for refactoring)
+  - Security plugin: `eslint-plugin-security` with `detect-object-injection` disabled (false positive for TypeScript)
+  - Lockfile integrity: `lockfile-lint` pre-commit hook
+  - `npm ci` enforcement in CI workflow
 - **Local quality gates**: husky + lint-staged pre-commit hooks for format/lint/typecheck
 - **Integration tests**: Comprehensive test suite for full questionnaire workflow
 - **Type guards**: `isSingleAnswer()` and `isMultiAnswer()` helper functions

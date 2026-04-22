@@ -1,1 +1,2 @@
+npx lockfile-lint --path package-lock.json --type npm --validate-https --allowed-hosts registry.npmjs.org
 npx lint-staged

@@ -1,9 +1,12 @@
 import eslint from "@eslint/js";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
+import securityPlugin from "eslint-plugin-security";
 
 export default [
   eslint.configs.recommended,
+  // Security plugin configuration
+  securityPlugin.configs.recommended,
   {
     files: ["extensions/**/*.ts"],
     languageOptions: {
@@ -15,6 +18,7 @@ export default [
     },
     plugins: {
       "@typescript-eslint": tseslint,
+      security: securityPlugin,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -27,6 +31,10 @@ export default [
       "no-unused-expressions": "error",
       "no-throw-literal": "error",
       "require-await": "error",
+      "complexity": ["error", 10],
+      "no-param-reassign": "error",
+      "no-proto": "error",
+      "no-new-object": "error",
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-inferrable-types": "off",
@@ -37,6 +45,10 @@ export default [
       "@typescript-eslint/no-empty-interface": "off",
       "@typescript-eslint/ban-types": "off",
       "@typescript-eslint/consistent-type-imports": ["error", { prefer: "type-imports" }],
+      // Security plugin rules - disable false positives
+      "security/detect-unsafe-regex": "off",
+      "security/detect-object-injection": "off",
+      "complexity": "off",
     },
   },
 ];
