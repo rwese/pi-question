@@ -23,6 +23,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [2.0.0] - 2026-04-22
+
+### Breaking Changes
+
+- **MultiAnswer structure changed**: Replaced parallel arrays (`values`, `labels`, `descriptions`, `wasCustom`) with object array `items` of type `MultiAnswerItem[]`
+  - Migration: Update code using `answer.values[n]`, `answer.labels[n]` to use `answer.items[n].value`, `answer.items[n].label`
+- **Data structure**:
+  ```typescript
+  interface MultiAnswerItem {
+    value: string;
+    label: string;
+    description?: string;
+    wasCustom: boolean;
+    note?: string;
+  }
+  interface MultiAnswer {
+    items: MultiAnswerItem[];
+  }
+  ```
+
+### Added
+
+- **Per-item notes for multi-select**: Press (n) on a selected option to add a note
+- **Nested note output**: Notes displayed as indented `Note: ...` under each item
+- **Input modal for notes**: Uses pi-tui Editor for note entry
+- **Help text updated**: Shows (n)ote hint for multi-select options
+
+### Changed
+
+- **Markdown output**: Multi-select items now show notes as nested bullets
+  - Before: `- [x] Go`
+  - After: `- [x] Go
+    Note: my reason`
+
 - **Quality gates expanded**:
   - Mutation checking: `no-param-reassign`, `no-proto`, `no-new-object`, `prefer-const`
   - Complexity monitoring: `complexity` rule with threshold 20

@@ -296,9 +296,8 @@ describe("Other Option - Regression Tests", () => {
 			expect(result.details.cancelled).toBe(false);
 			expect(result.details.answers).toHaveLength(1);
 			const answer = result.details.answers[0] as any;
-			expect(answer.values).toContain("(other)");
-			expect(answer.labels).toContain("Docker");
-			expect(answer.wasCustom).toContain(true);
+			expect(answer.items.some(i => i.value === '(other)' && i.wasCustom)).toBe(true);
+    expect(answer.items.some(i => i.label === 'Docker')).toBe(true);
 		});
 	});
 

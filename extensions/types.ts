@@ -27,11 +27,16 @@ export interface SingleAnswer {
 	message?: string;
 }
 
+export interface MultiAnswerItem {
+	value: string;
+	label: string;
+	description?: string;
+	wasCustom: boolean;
+	note?: string;
+}
+
 export interface MultiAnswer {
-	values: string[];
-	labels: string[];
-	descriptions: string[];
-	wasCustom: boolean[];
+	items: MultiAnswerItem[];
 }
 
 export type Answer = SingleAnswer | MultiAnswer;

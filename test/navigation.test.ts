@@ -145,9 +145,7 @@ describe("Navigation - Must Answer Requirement", () => {
 			mockCustom = vi.fn().mockImplementation(() => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
-					answers: [{ values: ["git"], labels: ["Git"],
- descriptions: [],
- wasCustom: [false] }],
+					answers: [{ items: [ { value: 'git', label: 'Git', wasCustom: false } ] }],
 					cancelled: false,
 				});
 			});
@@ -161,7 +159,9 @@ describe("Navigation - Must Answer Requirement", () => {
 			);
 
 			expect(result.details.answers).toHaveLength(1);
-			expect(result.details.answers[0]).toHaveProperty("values", ["git"]);
+			const answer = result.details.answers[0] as MultiAnswer;
+    expect(answer.items).toHaveLength(1);
+    expect(answer.items[0].value).toBe('git');
 		});
 
 		it("advances on Enter when no options selected - adds (no choice)", async () => {
@@ -172,9 +172,7 @@ describe("Navigation - Must Answer Requirement", () => {
 			mockCustom = vi.fn().mockImplementation(() => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
-					answers: [{ values: [], labels: [],
- descriptions: [],
- wasCustom: [] }],
+					answers: [{ items: [  ] }],
 					cancelled: false,
 				});
 			});
@@ -206,9 +204,7 @@ describe("Navigation - Must Answer Requirement", () => {
 					],
 					answers: [
 						{ value: "go", label: "Go", wasCustom: false, index: 1 },
-						{ values: ["git"], labels: ["Git"],
- descriptions: [],
- wasCustom: [false] },
+						{ items: [ { value: 'git', label: 'Git', wasCustom: false } ] },
 					],
 					cancelled: false,
 				});

@@ -129,10 +129,7 @@ describe("Message Feature v2", () => {
 						const result = {
 							questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
 							answers: [{
-								values: ["git", "docker"],
-								labels: ["Git", "Docker"],
-								descriptions: [],
-								wasCustom: [false, false],
+								items: [ { value: 'git', label: 'Git', wasCustom: false }, { value: 'docker', label: 'Docker', wasCustom: false } ],
 							}],
 							cancelled: false,
 						};
@@ -160,9 +157,10 @@ describe("Message Feature v2", () => {
 			);
 
 			const answer = result.details.answers[0] as MultiAnswer;
-			expect(answer.values).toEqual(["git", "docker"]);
-			expect(answer.labels).toEqual(["Git", "Docker"]);
-			expect(answer.wasCustom).toEqual([false, false]);
+    expect(answer.items).toHaveLength(2);
+    expect(answer.items[0].value).toBe('git');
+    expect(answer.items[0].label).toBe('Git');
+    expect(answer.items[0].wasCustom).toBe(false);
 		});
 
 		it("multi-select output shows checkbox list without comments", async () => {
@@ -181,10 +179,7 @@ describe("Message Feature v2", () => {
 						const result = {
 							questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
 							answers: [{
-								values: ["git", "tmux"],
-								labels: ["Git", "tmux"],
-								descriptions: [],
-								wasCustom: [false, false],
+								items: [ { value: 'git', label: 'Git', wasCustom: false }, { value: 'tmux', label: 'tmux', wasCustom: false } ],
 							}],
 							cancelled: false,
 						};
@@ -278,10 +273,7 @@ describe("Message Feature v2", () => {
 					questions: [{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] }],
 					answers: [
 						{
-							values: ["git", "docker"],
-							labels: ["Git", "Docker"],
-							descriptions: [],
-							wasCustom: [false, false],
+							items: [ { value: 'git', label: 'Git', wasCustom: false }, { value: 'docker', label: 'Docker', wasCustom: false } ],
 						},
 					],
 					cancelled: false,

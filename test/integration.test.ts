@@ -165,9 +165,7 @@ describe("Integration: Full Questionnaire Workflow", () => {
 					],
 					answers: [
 						{ value: "single-val", label: "Single Label", wasCustom: false, index: 1 },
-						{ values: ["multi-a", "multi-b"], labels: ["Multi A", "Multi B"],
- descriptions: [],
- wasCustom: [false, false] },
+						{ items: [ { value: 'multi-a', label: 'Multi A', wasCustom: false }, { value: 'multi-b', label: 'Multi B', wasCustom: false } ] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult);
@@ -193,8 +191,10 @@ describe("Integration: Full Questionnaire Workflow", () => {
 			expect(answers[0]).not.toHaveProperty("values");
 			
 			// Second answer should be multi
-			expect(answers[1]).toHaveProperty("values");
-			expect((answers[1] as MultiAnswer).values).toEqual(["multi-a", "multi-b"]);
+			const multiAnswer = answers[1] as MultiAnswer;
+    expect(multiAnswer.items).toHaveLength(2);
+    expect(multiAnswer.items[0].value).toBe('multi-a');
+    expect(multiAnswer.items[1].value).toBe('multi-b');
 		});
 
 		it("correctly formats markdown for single-select answers", async () => {
@@ -237,9 +237,7 @@ describe("Integration: Full Questionnaire Workflow", () => {
 						{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] },
 					],
 					answers: [
-						{ values: ["git", "docker"], labels: ["Git", "Docker"],
- descriptions: [],
- wasCustom: [false, false] },
+						{ items: [ { value: 'git', label: 'Git', wasCustom: false }, { value: 'docker', label: 'Docker', wasCustom: false } ] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult);
@@ -306,9 +304,7 @@ describe("Integration: Full Questionnaire Workflow", () => {
 						{ questionTopic: "Tools", prompt: "Select tools", type: "multi", options: [] },
 					],
 					answers: [
-						{ values: ["git", "(other)"], labels: ["Git", "Docker"],
- descriptions: [],
- wasCustom: [false, true] },
+						{ items: [ { value: 'git', label: 'Git', wasCustom: false }, { value: '(other)', label: 'Docker', wasCustom: true } ] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult);
@@ -327,9 +323,8 @@ describe("Integration: Full Questionnaire Workflow", () => {
 			);
 
 			const answer = result.details.answers[0] as MultiAnswer;
-			expect(answer.values).toContain("(other)");
-			expect(answer.labels).toContain("Docker");
-			expect(answer.wasCustom).toContain(true);
+    expect(answer.items.some(i => i.value === '(other)' && i.wasCustom)).toBe(true);
+    expect(answer.items.some(i => i.label === 'Docker')).toBe(true);
 		});
 	});
 
@@ -398,9 +393,7 @@ describe("Integration: Full Questionnaire Workflow", () => {
 						{ questionTopic: "Optional", prompt: "Select optional items", type: "multi", options: [] },
 					],
 					answers: [
-						{ values: [], labels: [],
- descriptions: [],
- wasCustom: [] },
+						{ items: [  ] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult);
@@ -470,9 +463,7 @@ describe("Integration: Full Questionnaire Workflow", () => {
 					],
 					answers: [
 						{ value: "a1", label: "Answer 1", wasCustom: false, index: 1 },
-						{ values: ["b1", "b2"], labels: ["B1", "B2"],
- descriptions: [],
- wasCustom: [false, false] },
+						{ items: [ { value: 'b1', label: 'B1', wasCustom: false }, { value: 'b2', label: 'B2', wasCustom: false } ] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult,
@@ -672,10 +663,7 @@ describe("Integration: recommended Field Isolation", () => {
 				],
 				answers: [
 					{
-						values: ["docker", "k8s"],
-						labels: ["Docker", "Kubernetes"],
-						descriptions: [],
-						wasCustom: [false, false],
+						items: [ { value: 'docker', label: 'Docker', wasCustom: false }, { value: 'k8s', label: 'Kubernetes', wasCustom: false } ],
 					},
 				],
 				cancelled: false,
