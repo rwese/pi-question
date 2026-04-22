@@ -625,130 +625,129 @@ export default function question(pi: ExtensionAPI) {
 					advanceAfterAnswer();
 				};
 
-				function handleInput(data: string) {
-					if (messageMode) {
-						if (matchesKey(data, Key.escape)) {
-							// Keep the typed text in editor - user might come back
-							pendingOther = null;
-							messageMode = false;
-							// editor.setText('');  // Don't clear - preserve for potential edit
-							refresh();
-							return;
+				function handleMessageInput(data: string) {
+					if (matchesKey(data, Key.escape)) {
+						pendingOther = null;
+						messageMode = false;
+						refresh();
+						return true;
+					}
+					if (matchesKey(data, Key.tab)) {
+						const text = editor.getText();
+						if (text.trim()) {
+							submitPendingWithMessage(text);
+						} else {
+							skipMessageAndSubmit();
 						}
-						if (matchesKey(data, Key.tab)) {
-							const text = editor.getText();
-							if (text.trim()) {
-								submitPendingWithMessage(text);
-							} else {
-								skipMessageAndSubmit();
+						return true;
+					}
+					editor.handleInput(data);
+					refresh();
+					return true;
+				}
+
+				function handleOtherInput(data: string) {
+					if (matchesKey(data, Key.escape)) {
+						inputMode = false;
+						inputQuestionIndex = null;
+						editor.setText('');
+						refresh();
+						return true;
+					}
+					editor.handleInput(data);
+					refresh();
+					return true;
+				}
+
+				function handleMultiNav(data: string) {
+					if (matchesKey(data, Key.right)) {
+						if (currentTab === questions.length && !hasAnyAnswer()) {
+							repromptMode = true;
+							repromptMessage =
+								'You must answer at least one question before submitting';
+							refresh();
+							return true;
+						}
+						currentTab = (currentTab + 1) % totalTabs;
+						const nextQ = currentSortedQuestion();
+						optionIndex = nextQ ? getFirstRecommendedIndex(nextQ.options) : 0;
+						refresh();
+						return true;
+					}
+					if (matchesKey(data, Key.left)) {
+						currentTab = (currentTab - 1 + totalTabs) % totalTabs;
+						const prevQ = currentSortedQuestion();
+						optionIndex = prevQ ? getFirstRecommendedIndex(prevQ.options) : 0;
+						refresh();
+						return true;
+					}
+					return false;
+				}
+
+				function handleSubmitTabInput(data: string) {
+					if (repromptMode) {
+						repromptMode = false;
+						repromptMessage = '';
+						let targetTab = 0;
+						for (let i = 0; i < questions.length; i++) {
+							if (!answers.has(i)) {
+								targetTab = i;
+								break;
 							}
-							return;
+							targetTab = i;
 						}
-						editor.handleInput(data);
+						currentTab = targetTab;
+						const prevQ = currentSortedQuestion();
+						optionIndex = prevQ ? getFirstRecommendedIndex(prevQ.options) : 0;
 						refresh();
-						return;
+						return true;
 					}
-
-					if (inputMode) {
-						if (matchesKey(data, Key.escape)) {
-							inputMode = false;
-							inputQuestionIndex = null;
-							editor.setText('');
-							refresh();
-							return;
-						}
-						editor.handleInput(data);
-						refresh();
-						return;
+					if (matchesKey(data, Key.enter) && allAnswered()) {
+						submit(false);
+						return true;
 					}
+					if (matchesKey(data, Key.escape)) {
+						submit(true);
+						return true;
+					}
+					return false;
+				}
 
-					const q = currentQuestion();
+				function handleOptionNavigation(data: string) {
 					const opts = currentOptions();
-					const isMultiQ = isMultiSelect();
-
-					if (isMulti) {
-						if (matchesKey(data, Key.right)) {
-							if (currentTab === questions.length && !hasAnyAnswer()) {
-								// Cannot navigate away from submit tab without answering at least one question
-								repromptMode = true;
-								repromptMessage =
-									'You must answer at least one question before submitting';
-								refresh();
-								return;
-							}
-							currentTab = (currentTab + 1) % totalTabs;
-							const nextQ = currentSortedQuestion();
-							optionIndex = nextQ ? getFirstRecommendedIndex(nextQ.options) : 0;
-							refresh();
-							return;
-						}
-						if (matchesKey(data, Key.left)) {
-							currentTab = (currentTab - 1 + totalTabs) % totalTabs;
-							const prevQ = currentSortedQuestion();
-							optionIndex = prevQ ? getFirstRecommendedIndex(prevQ.options) : 0;
-							refresh();
-							return;
-						}
-					}
-
-					if (currentTab === questions.length) {
-						// Exit reprompt mode on any key - go back to last unanswered question
-						if (repromptMode) {
-							repromptMode = false;
-							repromptMessage = '';
-							// Go back to first unanswered question (or last question if all answered)
-							let targetTab = 0;
-							for (let i = 0; i < questions.length; i++) {
-								if (!answers.has(i)) {
-									targetTab = i;
-									break;
-								}
-								if (i === questions.length - 1) {
-									targetTab = i; // All answered, stay on last
-								}
-							}
-							currentTab = targetTab;
-							const prevQ = currentSortedQuestion();
-							optionIndex = prevQ ? getFirstRecommendedIndex(prevQ.options) : 0;
-							refresh();
-							return;
-						}
-						if (matchesKey(data, Key.enter) && allAnswered()) {
-							submit(false);
-						} else if (matchesKey(data, Key.escape)) {
-							submit(true);
-						}
-						return;
-					}
-
 					if (matchesKey(data, Key.up)) {
 						optionIndex = Math.max(0, optionIndex - 1);
 						refresh();
-						return;
+						return true;
 					}
 					if (matchesKey(data, Key.down)) {
 						optionIndex = Math.min(opts.length - 1, optionIndex + 1);
 						refresh();
-						return;
+						return true;
+					}
+					return false;
+				}
+
+				function handleOptionSelection(data: string) {
+					const q = currentQuestion();
+					const isMultiQ = isMultiSelect();
+					if (!q) return false;
+
+					if (matchesKey(data, Key.space) && isMultiQ) {
+						toggleOption(optionIndex);
+						refresh();
+						return true;
 					}
 
-					if (matchesKey(data, Key.space) && q) {
-						if (isMultiQ) {
-							toggleOption(optionIndex);
-							refresh();
-							return;
-						}
-					}
-
-					if (matchesKey(data, Key.enter) && q) {
+					if (matchesKey(data, Key.enter)) {
 						const opt = currentOptions()[optionIndex];
-						if (!opt) return;
+						if (!opt) return false;
 						if (opt.isOther) {
 							inputMode = true;
 							inputQuestionIndex = currentTab;
 							editor.setText('');
 							refresh();
-							return;
+							return true;
 						}
 
 						if (isMultiQ) {
@@ -761,7 +760,7 @@ export default function question(pi: ExtensionAPI) {
 							}
 							saveMultiAnswer(currentTab, values, labels, descriptions, wasCustom);
 							advanceAfterAnswer();
-							return;
+							return true;
 						}
 
 						saveSingleAnswer(
@@ -773,26 +772,286 @@ export default function question(pi: ExtensionAPI) {
 							optionIndex + 1,
 						);
 						advanceAfterAnswer();
-						return;
+						return true;
 					}
 
-					if (matchesKey(data, Key.tab) && q) {
+					if (matchesKey(data, Key.tab)) {
 						const opt = currentOptions()[optionIndex];
-						if (!opt) return;
-
-						if (isMultiQ) {
-							if (!opt.isOther) {
-								toggleOption(optionIndex);
-							}
-							showMessagePrompt(currentTab, true);
-						} else {
-							showMessagePrompt(currentTab, false);
+						if (!opt) return false;
+						if (isMultiQ && !opt.isOther) {
+							toggleOption(optionIndex);
 						}
+						showMessagePrompt(currentTab, isMultiQ);
+						return true;
+					}
+
+					return false;
+				}
+
+				function handleInput(data: string) {
+					if (messageMode) {
+						if (handleMessageInput(data)) return;
+					}
+
+					if (inputMode) {
+						if (handleOtherInput(data)) return;
+					}
+
+					if (isMulti) {
+						if (handleMultiNav(data)) return;
+					}
+
+					if (currentTab === questions.length) {
+						if (handleSubmitTabInput(data)) return;
 						return;
 					}
+
+					if (handleOptionNavigation(data)) return;
+					if (handleOptionSelection(data)) return;
 
 					if (matchesKey(data, Key.escape)) {
 						submit(true);
+					}
+				}
+
+				function renderTabs(add: (s: string) => void) {
+					const tabs: string[] = ['← '];
+					for (let i = 0; i < questions.length; i++) {
+						const qAtIdx = questions[i];
+						if (!qAtIdx) continue;
+						const isActive = i === currentTab;
+						const isAnswered = answers.has(i);
+						const box = isAnswered ? '■' : '□';
+						const color = isAnswered ? 'success' : 'muted';
+						const text = ` ${box} ${qAtIdx.questionTopic} `;
+						const styled = isActive
+							? theme.bg('selectedBg', theme.fg('text', text))
+							: theme.fg(color, text);
+						tabs.push(`${styled} `);
+					}
+					const canSubmit = allAnswered();
+					const isSubmitTab = currentTab === questions.length;
+					const submitText = ' ✓ Submit ';
+					const submitStyled = isSubmitTab
+						? theme.bg('selectedBg', theme.fg('text', submitText))
+						: theme.fg(canSubmit ? 'success' : 'dim', submitText);
+					tabs.push(`${submitStyled} →`);
+					add(` ${tabs.join('')}`);
+				}
+
+				function renderOptions(
+					opts: RenderOption[],
+					isMultiQ: boolean,
+					add: (s: string) => void,
+				) {
+					for (let i = 0; i < opts.length; i++) {
+						const opt = opts[i];
+						if (!opt) continue;
+						const selected = isOptionSelected(i);
+						const isCursor = i === optionIndex;
+						const isOther = opt.isOther === true;
+						const isRecommended = !isOther && opt.recommended;
+
+						let prefix: string;
+						if (isMultiQ) {
+							const cursorMark = isCursor ? theme.fg('accent', '>') + ' ' : '  ';
+							const checkMark = selected
+								? theme.fg('accent', '☑')
+								: theme.fg('muted', '☐');
+							prefix = cursorMark + checkMark + ' ';
+						} else {
+							prefix = isCursor
+								? theme.fg('accent', '> ● ')
+								: theme.fg('muted', '  ○ ');
+						}
+
+						const selectedColor = selected ? 'accent' : 'text';
+						let labelText = `${i + 1}. ${opt.label}`;
+
+						if (isRecommended) {
+							labelText += ` ${theme.fg('success', '(Recommended)')}`;
+						}
+
+						if (isOther && inputMode) {
+							add(prefix + theme.fg('accent', labelText + ' ✎'));
+						} else {
+							add(prefix + theme.fg(selectedColor, labelText));
+						}
+						if (opt.description) {
+							add(`       ${theme.fg('muted', opt.description)}`);
+						}
+					}
+				}
+
+				function renderInputMode(
+					lines: string[],
+					width: number,
+					q: Question,
+					opts: RenderOption[],
+					isMultiQ: boolean,
+					add: (s: string) => void,
+				) {
+					add(theme.fg('text', ` ${q.prompt}`));
+					lines.push('');
+					if (isMultiQ) {
+						const { labels } = getSelectedValues();
+						if (labels.length > 0) {
+							add(theme.fg('muted', ` Selected: ${labels.join(', ')}`));
+							lines.push('');
+						}
+					}
+					lines.push('');
+					add(theme.fg('muted', ' Your answer:'));
+					const typedText = editor.getText();
+					if (typedText) {
+						add(` ${typedText}`);
+					}
+					for (const line of editor.render(width - 2)) {
+						add(` ${line}`);
+					}
+					lines.push('');
+					add(theme.fg('dim', ' Enter to submit • Esc to cancel'));
+				}
+
+				function renderMessageMode(
+					lines: string[],
+					width: number,
+					q: Question,
+					opts: RenderOption[],
+					isMultiQ: boolean,
+					add: (s: string) => void,
+				) {
+					add(theme.fg('text', ` ${q.prompt}`));
+					lines.push('');
+
+					if (isMultiQ) {
+						const { labels } = getSelectedValues();
+						if (labels.length > 0) {
+							add(
+								theme.fg('muted', ` Selected: `) +
+									theme.fg('accent', labels.join(', ')),
+							);
+						} else {
+							add(theme.fg('muted', ` No options selected`));
+						}
+					} else {
+						const selectedOpt = opts[optionIndex];
+						const savedAnswer = answers.get(currentTab);
+						let noteDisplay = '';
+						if (savedAnswer && 'message' in savedAnswer && savedAnswer.message) {
+							noteDisplay = ` ${theme.fg('success', `(note: "${savedAnswer.message}")`)}`;
+						}
+						add(
+							theme.fg('muted', ` Selected: `) +
+								theme.fg('accent', selectedOpt?.label || '') +
+								noteDisplay,
+						);
+					}
+					lines.push('');
+					add(theme.fg('muted', ' Add note (optional):'));
+					const typedText = editor.getText();
+					if (typedText) {
+						add(` ${typedText}`);
+					}
+					for (const line of editor.render(width - 2)) {
+						add(` ${line}`);
+					}
+					lines.push('');
+					add(theme.fg('dim', ' Enter/Tab save • Esc discard'));
+				}
+
+				function renderSubmitTab(lines: string[], add: (s: string) => void) {
+					if (repromptMode) {
+						add(theme.fg('warning', ` ⚠ ${repromptMessage}`));
+						lines.push('');
+						add(theme.fg('muted', ' Press any key to continue answering questions...'));
+						lines.push('');
+						lines.push('');
+						add(theme.fg('accent', theme.bold(' Answers so far:')));
+						lines.push('');
+						if (answers.size === 0) {
+							add(theme.fg('muted', ' (no questions answered yet)'));
+						}
+					} else {
+						add(theme.fg('accent', theme.bold(' Ready to submit')));
+						lines.push('');
+						for (let i = 0; i < questions.length; i++) {
+							const question = questions[i];
+							if (!question) continue;
+							const answer = answers.get(i);
+							if (answer) {
+								if (question.type === 'multi') {
+									const multiAnswer = answer as MultiAnswer;
+									const valuesStr = multiAnswer.labels.join(', ') || '(none)';
+									add(
+										`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', valuesStr)}`,
+									);
+								} else {
+									const singleAnswer = answer as SingleAnswer;
+									const prefix = singleAnswer.wasCustom ? '(custom) ' : '';
+									add(
+										`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', prefix + singleAnswer.label)}`,
+									);
+									if (singleAnswer.message) {
+										add(
+											`     ${theme.fg('muted', `Note: "${singleAnswer.message}"`)}`,
+										);
+									}
+								}
+							}
+						}
+						lines.push('');
+						if (allAnswered()) {
+							add(theme.fg('success', ' Press Enter to submit'));
+						} else {
+							const missing = questions
+								.filter((_, i) => !answers.has(i))
+								.map((qq) => qq.questionTopic)
+								.join(', ');
+							add(theme.fg('warning', ` Unanswered: ${missing}`));
+						}
+					}
+				}
+
+				function renderQuestionMode(
+					lines: string[],
+					q: Question,
+					opts: RenderOption[],
+					isMultiQ: boolean,
+					add: (s: string) => void,
+				) {
+					add(theme.fg('muted', ` ${q.prompt}`));
+					lines.push('');
+					renderOptions(opts, isMultiQ, add);
+					lines.push('');
+					if (isMultiQ) {
+						lines.push('');
+						const { labels } = getSelectedValues();
+						if (labels.length > 0) {
+							add(theme.fg('muted', ` Selected: ${labels.join(', ')}`));
+						} else {
+							add(theme.fg('muted', ` No options selected`));
+						}
+					}
+				}
+
+				function renderHelpText(
+					isMulti: boolean,
+					isMultiQ: boolean,
+					repromptMode: boolean,
+					add: (s: string) => void,
+				) {
+					if (repromptMode) {
+						add(theme.fg('warning', ' ↑↓←→ Answer a question • Esc cancel'));
+					} else {
+						const help = isMulti
+							? isMultiQ
+								? ' ←→ navigate • ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
+								: ' ←→ navigate • ↑↓ select • Tab↹ add note • Enter confirm • Esc cancel'
+							: isMultiQ
+								? ' ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
+								: ' ↑↓ navigate • Enter select • Tab↹ add note • Esc cancel';
+						add(theme.fg('dim', help));
 					}
 				}
 
@@ -809,209 +1068,23 @@ export default function question(pi: ExtensionAPI) {
 					add(theme.fg('accent', '─'.repeat(width)));
 
 					if (isMulti) {
-						const tabs: string[] = ['← '];
-						for (let i = 0; i < questions.length; i++) {
-							const qAtIdx = questions[i];
-							if (!qAtIdx) continue;
-							const isActive = i === currentTab;
-							const isAnswered = answers.has(i);
-							const box = isAnswered ? '■' : '□';
-							const color = isAnswered ? 'success' : 'muted';
-							const text = ` ${box} ${qAtIdx.questionTopic} `;
-							const styled = isActive
-								? theme.bg('selectedBg', theme.fg('text', text))
-								: theme.fg(color, text);
-							tabs.push(`${styled} `);
-						}
-						const canSubmit = allAnswered();
-						const isSubmitTab = currentTab === questions.length;
-						const submitText = ' ✓ Submit ';
-						const submitStyled = isSubmitTab
-							? theme.bg('selectedBg', theme.fg('text', submitText))
-							: theme.fg(canSubmit ? 'success' : 'dim', submitText);
-						tabs.push(`${submitStyled} →`);
-						add(` ${tabs.join('')}`);
+						renderTabs(add);
 						lines.push('');
-					}
-
-					function renderOptions() {
-						for (let i = 0; i < opts.length; i++) {
-							const opt = opts[i];
-							if (!opt) continue;
-							const selected = isOptionSelected(i);
-							const isCursor = i === optionIndex;
-							const isOther = opt.isOther === true;
-							const isRecommended = !isOther && opt.recommended;
-
-							let prefix: string;
-							if (isMultiQ) {
-								const cursorMark = isCursor ? theme.fg('accent', '>') + ' ' : '  ';
-								const checkMark = selected
-									? theme.fg('accent', '☑')
-									: theme.fg('muted', '☐');
-								prefix = cursorMark + checkMark + ' ';
-							} else {
-								prefix = isCursor
-									? theme.fg('accent', '> ● ')
-									: theme.fg('muted', '  ○ ');
-							}
-
-							const selectedColor = selected ? 'accent' : 'text';
-							let labelText = `${i + 1}. ${opt.label}`;
-
-							if (isRecommended) {
-								labelText += ` ${theme.fg('success', '(Recommended)')}`;
-							}
-
-							if (isOther && inputMode) {
-								add(prefix + theme.fg('accent', labelText + ' ✎'));
-							} else {
-								add(prefix + theme.fg(selectedColor, labelText));
-							}
-							if (opt.description) {
-								add(`       ${theme.fg('muted', opt.description)}`);
-							}
-						}
 					}
 
 					if (inputMode && q) {
-						add(theme.fg('text', ` ${q.prompt}`));
-						lines.push('');
-						if (isMultiQ) {
-							const { labels } = getSelectedValues();
-							if (labels.length > 0) {
-								add(theme.fg('muted', ` Selected: ${labels.join(', ')}`));
-								lines.push('');
-							}
-						}
-						// For Other: show only input field, not options
-						lines.push('');
-						add(theme.fg('muted', ' Your answer:'));
-						const typedText = editor.getText();
-						if (typedText) {
-							add(` ${typedText}`);
-						}
-						for (const line of editor.render(width - 2)) {
-							add(` ${line}`);
-						}
-						lines.push('');
-						add(theme.fg('dim', ' Enter to submit • Esc to cancel'));
+						renderInputMode(lines, width, q, opts, isMultiQ, add);
 					} else if (messageMode && q) {
-						add(theme.fg('text', ` ${q.prompt}`));
-						lines.push('');
-
-						if (isMultiQ) {
-							const { labels } = getSelectedValues();
-							if (labels.length > 0) {
-								add(
-									theme.fg('muted', ` Selected: `) +
-										theme.fg('accent', labels.join(', ')),
-								);
-							} else {
-								add(theme.fg('muted', ` No options selected`));
-							}
-						} else {
-							const selectedOpt = opts[optionIndex];
-							// Check for saved note on this question
-							const savedAnswer = answers.get(currentTab);
-							let noteDisplay = '';
-							if (savedAnswer && 'message' in savedAnswer && savedAnswer.message) {
-								noteDisplay = ` ${theme.fg('success', `(note: "${savedAnswer.message}")`)}`;
-							}
-							add(
-								theme.fg('muted', ` Selected: `) +
-									theme.fg('accent', selectedOpt?.label || '') +
-									noteDisplay,
-							);
-						}
-						lines.push('');
-						add(theme.fg('muted', ' Add note (optional):'));
-						// Show typed text (editor.getText()) and rendered content
-						const typedText = editor.getText();
-						if (typedText) {
-							add(` ${typedText}`);
-						}
-						for (const line of editor.render(width - 2)) {
-							add(` ${line}`);
-						}
-						lines.push('');
-						add(theme.fg('dim', ' Enter/Tab save • Esc discard'));
+						renderMessageMode(lines, width, q, opts, isMultiQ, add);
 					} else if (currentTab === questions.length) {
-						if (repromptMode) {
-							add(theme.fg('warning', ` ⚠ ${repromptMessage}`));
-							lines.push('');
-							add(
-								theme.fg(
-									'muted',
-									' Press any key to continue answering questions...',
-								),
-							);
-							lines.push('');
-							lines.push('');
-							add(theme.fg('accent', theme.bold(' Answers so far:')));
-							lines.push('');
-							if (answers.size === 0) {
-								add(theme.fg('muted', ' (no questions answered yet)'));
-							}
-						} else {
-							add(theme.fg('accent', theme.bold(' Ready to submit')));
-							lines.push('');
-							for (let i = 0; i < questions.length; i++) {
-								const question = questions[i];
-								if (!question) continue;
-								const answer = answers.get(i);
-								if (answer) {
-									if (question.type === 'multi') {
-										const multiAnswer = answer as MultiAnswer;
-										const valuesStr = multiAnswer.labels.join(', ') || '(none)';
-										add(
-											`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', valuesStr)}`,
-										);
-									} else {
-										const singleAnswer = answer as SingleAnswer;
-										const prefix = singleAnswer.wasCustom ? '(custom) ' : '';
-										add(
-											`${theme.fg('muted', ` ${question.questionTopic}: `)}${theme.fg('text', prefix + singleAnswer.label)}`,
-										);
-										if (singleAnswer.message) {
-											add(
-												`     ${theme.fg('muted', `Note: "${singleAnswer.message}"`)}`,
-											);
-										}
-									}
-								}
-							}
-							lines.push('');
-							if (allAnswered()) {
-								add(theme.fg('success', ' Press Enter to submit'));
-							} else {
-								const missing = questions
-									.filter((_, i) => !answers.has(i))
-									.map((qq) => qq.questionTopic)
-									.join(', ');
-								add(theme.fg('warning', ` Unanswered: ${missing}`));
-							}
-						}
+						renderSubmitTab(lines, add);
 					} else if (q) {
-						add(theme.fg('muted', ` ${q.prompt}`));
-						lines.push('');
-						renderOptions();
+						renderQuestionMode(lines, q, opts, isMultiQ, add);
 					}
 
 					lines.push('');
 					if (!inputMode && !messageMode) {
-						if (repromptMode) {
-							add(theme.fg('warning', ' ↑↓←→ Answer a question • Esc cancel'));
-						} else {
-							const help = isMulti
-								? isMultiQ
-									? ' ←→ navigate • ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
-									: ' ←→ navigate • ↑↓ select • Tab↹ add note • Enter confirm • Esc cancel'
-								: isMultiQ
-									? ' ↑↓ select • Space☐ toggle • Tab↹ add note • Enter confirm • Esc cancel'
-									: ' ↑↓ navigate • Enter select • Tab↹ add note • Esc cancel';
-							add(theme.fg('dim', help));
-						}
+						renderHelpText(isMulti, isMultiQ, repromptMode, add);
 					}
 					add(theme.fg('accent', '─'.repeat(width)));
 
@@ -1027,7 +1100,6 @@ export default function question(pi: ExtensionAPI) {
 					handleInput,
 				};
 			});
-
 			if (result.cancelled) {
 				ctx.abort();
 				pi.sendMessage(

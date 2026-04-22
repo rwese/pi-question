@@ -31,7 +31,6 @@ export default [
       "no-unused-expressions": "error",
       "no-throw-literal": "error",
       "require-await": "error",
-      "complexity": ["error", 10],
       "no-param-reassign": "error",
       "no-proto": "error",
       "no-new-object": "error",
@@ -48,7 +47,7 @@ export default [
       // Security plugin rules - disable false positives
       "security/detect-unsafe-regex": "off",
       "security/detect-object-injection": "off",
-      "complexity": ["error", 50],
+      "complexity": ["error", 20],
     },
   },
 ];
