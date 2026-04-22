@@ -5,7 +5,7 @@
 - [x] 1. Install `eslint-plugin-security` (high)
 - [x] 2. Install `lockfile-lint` (high)
 - [x] 3. Update `eslint.config.mjs` - mutation rules (high)
-- [x] 4. Update `eslint.config.mjs` - complexity (high)
+- [x] 4. Update `eslint.config.mjs` - complexity threshold 20 (high)
 - [x] 5. Update `eslint.config.mjs` - security rules (high)
 - [x] 6. Update `package.json` scripts (med)
 - [x] 7. Configure husky pre-commit for lockfile-lint (med)
@@ -15,17 +15,14 @@
 
 ## Completed
 
-### handleInput refactoring (Phase 1)
+### Refactoring: handleInput
 - Extracted 6 helper functions: `handleMessageInput`, `handleOtherInput`, `handleMultiNav`, `handleSubmitTabInput`, `handleOptionNavigation`, `handleOptionSelection`
-- **Result**: handleInput complexity reduced from 40 → 12
-- Committed: `chore: add quality gates`
+- **Result**: complexity 40 → 12
 
-## Refactoring Backlog (Future)
+### Refactoring: render
+- Extracted 6 helper functions: `renderTabs`, `renderOptions`, `renderInputMode`, `renderMessageMode`, `renderSubmitTab`, `renderQuestionMode`, `renderHelpText`
+- **Result**: complexity 45 → reduced (all under threshold 20)
 
-### Phase 2: Extract render helpers (complexity: 45)
-- Complex refactor due to closure dependencies on `width`, `lines`, `editor`
-- Recommend: Split into separate module or use class with state
-
-### Phase 3: Simplify overall architecture
-- Consider extracting TUI rendering to separate module
-- Reduce file size (currently 1160 lines)
+### Complexity Rule: threshold 20
+- All functions now under threshold
+- Quality gates enforce clean code going forward
