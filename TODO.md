@@ -13,11 +13,19 @@
 - [x] 9. Run full validate + fix issues (high)
 - [x] 10. Update CHANGELOG.md (low)
 
-## Refactoring Backlog
+## Completed
 
-- [ ] Reduce complexity in `extensions/index.ts`:
-  - `execute` method (complexity: 20)
-  - `handleInput` function (complexity: 40)
-  - `render` function (complexity: 45)
-  - `renderOptions` function (complexity: 13)
-  - `renderResult` method (complexity: 16)
+### handleInput refactoring (Phase 1)
+- Extracted 6 helper functions: `handleMessageInput`, `handleOtherInput`, `handleMultiNav`, `handleSubmitTabInput`, `handleOptionNavigation`, `handleOptionSelection`
+- **Result**: handleInput complexity reduced from 40 → 12
+- Committed: `chore: add quality gates`
+
+## Refactoring Backlog (Future)
+
+### Phase 2: Extract render helpers (complexity: 45)
+- Complex refactor due to closure dependencies on `width`, `lines`, `editor`
+- Recommend: Split into separate module or use class with state
+
+### Phase 3: Simplify overall architecture
+- Consider extracting TUI rendering to separate module
+- Reduce file size (currently 1160 lines)
