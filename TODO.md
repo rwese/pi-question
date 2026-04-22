@@ -1,43 +1,23 @@
-# Plan: Ensure `recommended` Never Leaks to Markdown Output
-
-## Summary
-Verify and document that the `recommended` field affects UI only (preselect, cursor, "(Recommended)" label), and never appears in markdown injection or answer data.
-
-## Research
-
-### Current Behavior (Verified)
-| Location | `recommended` usage | Purpose |
-|----------|---------------------|---------|
-| `sortedQuestions` | Sorting options | Recommended first |
-| `selectedOptions` | Pre-select in multi | Auto-check recommended |
-| `optionIndex` init | Cursor position | Start on recommended |
-| TUI render | `(Recommended)` suffix | Visual indicator |
-
-### Output Paths (Safe)
-| Output | Data Used | Contains `(Recommended)`? |
-|--------|-----------|---------------------------|
-| Markdown (execute) | `singleAnswer.label` | ❌ No |
-| Markdown (execute) | `multiAnswer.labels[]` | ❌ No |
-| renderResult | `singleAnswer.label` | ❌ No |
-| renderResult | `multiAnswer.labels[]` | ❌ No |
-| details | `{value, label, ...}` | ❌ No |
+# Quality Gates Implementation
 
 ## Tasks
 
-| # | Task | Acceptance Criteria | Status |
-|---|------|---------------------|--------|
-| 1 | Add test: `(Recommended)` absent from markdown output | Test passes with recommended option, output has no `(Recommended)` | ✅ Done |
-| 2 | Add test: `details.answers` exclude recommended metadata | Answer objects have only value/label/wasCustom/index/message | ✅ Done |
-| 3 | Document in AGENTS.md | Clear statement that `recommended` is UI-only | ✅ Done |
-| 4 | Run validation | `npm run validate` passes | ✅ Done |
+- [x] 1. Install `eslint-plugin-security` (high)
+- [x] 2. Install `lockfile-lint` (high)
+- [x] 3. Update `eslint.config.mjs` - mutation rules (high)
+- [x] 4. Update `eslint.config.mjs` - complexity (high)
+- [x] 5. Update `eslint.config.mjs` - security rules (high)
+- [x] 6. Update `package.json` scripts (med)
+- [x] 7. Configure husky pre-commit for lockfile-lint (med)
+- [x] 8. Update `.github/workflows/ci.yml` - npm ci (high) (already using npm ci)
+- [x] 9. Run full validate + fix issues (high)
+- [x] 10. Update CHANGELOG.md (low)
 
-## Completed: 2026-04-21
+## Refactoring Backlog
 
-- Added 5 tests in `test/integration.test.ts`:
-  - `should NOT include '(Recommended)' in markdown output for single-select`
-  - `should NOT include '(Recommended)' in markdown output for multi-select`
-  - `should NOT include 'recommended' metadata in details.answers`
-  - `should NOT include 'recommended' in renderResult output`
-  - `should preserve correct answer even when recommended is the only selected option`
-
-- Updated `AGENTS.md` with "Recommended Field (UI-Only)" section
+- [ ] Reduce complexity in `extensions/index.ts`:
+  - `execute` method (complexity: 20)
+  - `handleInput` function (complexity: 40)
+  - `render` function (complexity: 45)
+  - `renderOptions` function (complexity: 13)
+  - `renderResult` method (complexity: 16)
