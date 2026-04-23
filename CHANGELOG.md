@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Multi-line text support**: Question prompts and option descriptions now wrap across multiple lines instead of truncating with ellipsis
+  - Uses `wrapTextWithAnsi` for ANSI-aware word wrapping
+  - Caps wrapped content at 7 lines maximum
+  - Preserves ANSI styling across wrapped lines
+
 ## [2.0.0] - 2026-04-22
 
 ### Breaking Changes

@@ -18,6 +18,8 @@ import {
 	parseKey,
 	Text,
 	truncateToWidth,
+	visibleWidth,
+	wrapTextWithAnsi,
 } from '@mariozechner/pi-tui';
 import { Type } from '@sinclair/typebox';
 
@@ -83,6 +85,61 @@ const OTHER_VALUE = '__other__';
 const OTHER_LABEL = 'Other';
 const NO_CHOICE = '(no choice)';
 const OTHER_INPUT = '(other)';
+
+// Word-wrap helper constants
+const MAX_WRAP_LINES = 7;
+
+/**
+ * Wrap text to fit within width, preserving ANSI codes and capping at max lines.
+ * Uses wrapTextWithAnsi for ANSI-aware word wrapping.
+ */
+function wrapText(text: string, width: number, maxLines: number = MAX_WRAP_LINES): string[] {
+	const wrapped = wrapTextWithAnsi(text, width);
+	if (wrapped.length <= maxLines) {
+		return wrapped;
+	}
+	// Cap at maxLines: show first (maxLines - 1) lines + truncated last line
+	const result = wrapped.slice(0, maxLines - 1);
+	const lastLineWidth = Math.max(0, width - 4); // Leave room for "..."
+	result.push(truncateToWidth(wrapped[maxLines - 1] || '', lastLineWidth) + ' ...');
+	return result;
+}
+
+/**
+ * Add wrapped, styled text lines to the output.
+ * Wraps text and applies the same styling function to each line.
+ */
+function addWrappedText(
+	text: string,
+	width: number,
+	styleFn: (s: string) => string,
+	add: (s: string) => void,
+): void {
+	const wrapped = wrapText(text, width);
+	for (const line of wrapped) {
+		add(styleFn(line));
+	}
+}
+
+/**
+ * Add wrapped text with a prefix/indent on all lines.
+ * Useful for descriptions that need consistent indentation.
+ */
+function addWrappedTextWithPrefix(
+	text: string,
+	width: number,
+	prefix: string,
+	styleFn: (s: string) => string,
+	add: (s: string) => void,
+): void {
+	const prefixWidth = visibleWidth(prefix);
+	const contentWidth = Math.max(1, width - prefixWidth);
+	const wrapped = wrapText(text, contentWidth);
+	for (let i = 0; i < wrapped.length; i++) {
+		const linePrefix = i === 0 ? prefix : prefix;
+		add(styleFn(linePrefix + wrapped[i]));
+	}
+}
 
 /* global process */
 // Check for non-interactive mode (--print flag)
@@ -689,8 +746,10 @@ export default function question(pi: ExtensionAPI) {
 				function renderOptions(
 					opts: RenderOption[],
 					isMultiQ: boolean,
+					width: number,
 					add: (s: string) => void,
 				) {
+					const descriptionIndent = '       ';
 					for (let i = 0; i < opts.length; i++) {
 						const opt = opts[i];
 						if (!opt) continue;
@@ -725,7 +784,13 @@ export default function question(pi: ExtensionAPI) {
 							add(prefix + theme.fg(selectedColor, labelText));
 						}
 						if (opt.description) {
-							add(`       ${theme.fg('muted', opt.description)}`);
+							addWrappedTextWithPrefix(
+								opt.description,
+								width,
+								descriptionIndent,
+								(s) => theme.fg('muted', s),
+								add,
+							);
 						}
 					}
 				}
@@ -738,7 +803,7 @@ export default function question(pi: ExtensionAPI) {
 					isMultiQ: boolean,
 					add: (s: string) => void,
 				) {
-					add(theme.fg('text', ` ${q.prompt}`));
+					addWrappedText(` ${q.prompt}`, width, (s) => theme.fg('text', s), add);
 					lines.push('');
 					if (isMultiQ) {
 						const items = getSelectedItems();
@@ -822,14 +887,15 @@ export default function question(pi: ExtensionAPI) {
 
 				function renderQuestionMode(
 					lines: string[],
+					width: number,
 					q: Question,
 					opts: RenderOption[],
 					isMultiQ: boolean,
 					add: (s: string) => void,
 				) {
-					add(theme.fg('muted', ` ${q.prompt}`));
+					addWrappedText(` ${q.prompt}`, width, (s) => theme.fg('muted', s), add);
 					lines.push('');
-					renderOptions(opts, isMultiQ, add);
+					renderOptions(opts, isMultiQ, width, add);
 					lines.push('');
 					if (isMultiQ) {
 						lines.push('');
@@ -885,7 +951,7 @@ export default function question(pi: ExtensionAPI) {
 					} else if (currentTab === questions.length) {
 						renderSubmitTab(lines, add);
 					} else if (q) {
-						renderQuestionMode(lines, q, opts, isMultiQ, add);
+						renderQuestionMode(lines, width, q, opts, isMultiQ, add);
 					}
 
 					lines.push('');

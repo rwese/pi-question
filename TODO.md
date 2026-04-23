@@ -1,18 +1,18 @@
-# TODO: Multi-Select Per-Item Notes (v2.0.0)
+# TODO - Multi-line Text Support
 
-## Status
+## Done
+- [x] Plan created and approved
+- [x] M1.1: Import wrapTextWithAnsi utility
+- [x] M1.2: Create word-wrap helper function
+- [x] M1.3: Update prompt rendering
+- [x] M1.4: Update description rendering
+- [x] M2.1: Add word-wrap unit tests
+- [x] M2.2: Add integration tests for long content
+- [x] M3.1: Update README with multi-line behavior
+- [x] M3.2: Update CHANGELOG
 
-All tasks completed.
-
-### Completed Changes
-
-1. **`MultiAnswer` type** - Changed from parallel arrays to object array
-2. **`(n)` key handler** - Press (n) on selected option to add note
-3. **Output rendering** - Notes displayed as nested bullets
-4. **Tab for notes removed** - Only `(n)` is used for per-item notes
-5. **Tests updated** - All 97 tests passing
-6. **Documentation updated** - README, CHANGELOG
-
-### Breaking Changes
-
-`MultiAnswer` structure changed from parallel arrays to object array. See CHANGELOG.md for details.
+## Ready for Commit
+All tasks complete. Run validation:
+```bash
+npm run validate && npm test
+```
