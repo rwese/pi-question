@@ -229,7 +229,9 @@ describe("Integration: Full Questionnaire Workflow", () => {
 			const markdown = result.content[0].text;
 			
 			// Should use plain bullet for single-select
-			expect(markdown).toContain("### What is your choice?");
+			expect(markdown).toContain("## Question - Choice");
+			expect(markdown).toContain("What is your choice?");
+			expect(markdown).toContain("#### User answers");
 			expect(markdown).toContain("- Option A");
 			expect(markdown).not.toContain("[x]"); // No checkboxes for single
 		});
@@ -262,7 +264,9 @@ describe("Integration: Full Questionnaire Workflow", () => {
 			const markdown = result.content[0].text;
 			
 			// Should use checkboxes for multi-select
-			expect(markdown).toContain("### Select tools");
+			expect(markdown).toContain("## Question - Tools");
+			expect(markdown).toContain("Select tools");
+			expect(markdown).toContain("#### User answers");
 			expect(markdown).toContain("- [x] Git");
 			expect(markdown).toContain("- [x] Docker");
 		});
@@ -476,9 +480,13 @@ describe("Integration: Full Questionnaire Workflow", () => {
 			const rendered = registeredTool.renderResult(result, {}, mockTheme, {});
 
 			expect(rendered).toBeDefined();
-			expect(rendered.text).toContain("### Question 1?");
+			expect(rendered.text).toContain("## Question - Q1");
+			expect(rendered.text).toContain("Question 1?");
+			expect(rendered.text).toContain("#### User answers");
 			expect(rendered.text).toContain("- Answer 1");
-			expect(rendered.text).toContain("### Question 2?");
+			expect(rendered.text).toContain("## Question - Q2");
+			expect(rendered.text).toContain("Question 2?");
+			expect(rendered.text).toContain("#### User answers");
 			expect(rendered.text).toContain("- [x] B1");
 			expect(rendered.text).toContain("- [x] B2");
 		});

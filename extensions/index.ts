@@ -999,7 +999,11 @@ export default function question(pi: ExtensionAPI) {
 
 				if (!answer) continue;
 
-				lines.push(`### ${q.prompt}`);
+				lines.push(`## Question - ${q.questionTopic}`);
+				lines.push(q.prompt);
+				lines.push('');
+				lines.push('#### User answers');
+				lines.push('');
 
 				if (q.type === 'multi' && 'items' in answer && Array.isArray(answer.items)) {
 					const multiAnswer = answer as MultiAnswer;
@@ -1068,7 +1072,11 @@ export default function question(pi: ExtensionAPI) {
 				const answer = details.answers[i];
 				if (!answer) continue;
 
-				lines.push(`### ${q.prompt}`);
+				lines.push(`## Question - ${q.questionTopic}`);
+				lines.push(q.prompt);
+				lines.push('');
+				lines.push('#### User answers');
+				lines.push('');
 
 				if (q.type === 'multi' && 'items' in answer && Array.isArray(answer.items)) {
 					const multiAnswer = answer as MultiAnswer;
