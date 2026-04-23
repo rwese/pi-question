@@ -276,14 +276,14 @@ A `questionnaire-cancelled` message is also sent to the agent.
 {
   value: string,           // Returned when selected
   label: string,            // Display label
-  description?: string,    // Optional description below label
+  description?: string,    // Optional description below label (supports multi-line)
   recommended?: boolean    // Pre-select and highlight
 }
 
 // Question
 {
   questionTopic: string,    // Tab bar label
-  prompt: string,           // Question text
+  prompt: string,           // Question text (supports multi-line)
   type?: "single" | "multi", // Default: "single"
   options: QuestionOption[]
 }
@@ -292,6 +292,24 @@ A `questionnaire-cancelled` message is also sent to the agent.
 {
   questions: Question[]
 }
+```
+
+## Multi-line Text Support
+
+Question prompts and option descriptions support multi-line text:
+
+- **Long prompts**: Automatically word-wrap to fit the terminal width
+- **Long descriptions**: Wrap across multiple lines with proper indentation
+- **Max lines**: Content is capped at 7 lines to prevent excessive scrolling
+- **ANSI support**: Styling is preserved across wrapped lines
+
+Example with multi-line content:
+
+```
+  1. ● Feature      This is a comprehensive description that
+     wraps across multiple lines to fit within the
+     terminal width while maintaining readability
+  2.   ○ Bug fix    A shorter description
 ```
 
 ## Special Values

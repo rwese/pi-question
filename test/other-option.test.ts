@@ -27,6 +27,8 @@ vi.mock("@mariozechner/pi-coding-agent", () => ({
 	matchesKey: vi.fn(),
 	Text: vi.fn(),
 	truncateToWidth: vi.fn((s: string) => s),
+	wrapTextWithAnsi: vi.fn((text: string, width: number): string[] => [text]),
+	visibleWidth: vi.fn((text: string): number => text.length),
 }));
 
 vi.mock("@mariozechner/pi-tui", () => ({
@@ -79,6 +81,8 @@ vi.mock("@mariozechner/pi-tui", () => ({
 	}),
 	Text: vi.fn().mockImplementation((text) => ({ text, line: 0, col: 0 })),
 	truncateToWidth: vi.fn((s: string) => s),
+	wrapTextWithAnsi: vi.fn((text: string, width: number): string[] => [text]),
+	visibleWidth: vi.fn((text: string): number => text.length),
 }));
 
 // Import extension after mocks
