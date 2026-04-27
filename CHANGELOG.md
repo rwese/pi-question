@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Caps wrapped content at 7 lines maximum
   - Preserves ANSI styling across wrapped lines
 
+## [2.1.1] - 2026-04-27
+
+### Changed
+
+- **Note screen UI**: Removed "Your answer:" label and typed text preview from note input screen for cleaner interface
+
 ## [2.0.0] - 2026-04-22
 
 ### Breaking Changes
