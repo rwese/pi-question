@@ -28,6 +28,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Caps wrapped content at 7 lines maximum
   - Preserves ANSI styling across wrapped lines
 
+### Changed
+
+- **Multi-select required selection**: Multi-select questions now require at least one option to be selected before advancing to the next question
+  - Users cannot proceed without selecting at least one option
+  - Shows warning message when trying to advance without selection
+  - Press any key to dismiss warning and continue selecting options
+  - Removed `(no choice)` fallback for empty multi-select
+
+### Fixed
+
+- **Multi-select option indexing bug**: Fixed `toggleOption` function to correctly convert display indices to original indices when options are sorted (e.g., recommended first). Previously, when options were sorted, selecting option B might save option C's value instead.
+
 ## [2.1.1] - 2026-04-27
 
 ### Changed

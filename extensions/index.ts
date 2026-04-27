@@ -83,7 +83,6 @@ interface QuestionnaireError {
 // Constants
 const OTHER_VALUE = '__other__';
 const OTHER_LABEL = 'Other';
-const NO_CHOICE = '(no choice)';
 const OTHER_INPUT = '(other)';
 
 // Word-wrap helper constants
@@ -263,6 +262,7 @@ export default function question(pi: ExtensionAPI) {
 				const answers = new Map<number, Answer>();
 				let repromptMode = false;
 				let repromptMessage = '';
+				let requireSelectionMode = false;
 				let noteOptionIndex: number | null = null;
 
 				// For multi-select: track which options are selected
@@ -385,15 +385,21 @@ export default function question(pi: ExtensionAPI) {
 					return optionIndex === displayIdx;
 				}
 
-				function toggleOption(idx: number) {
+				function toggleOption(displayIdx: number) {
 					const q = currentQuestion();
-					if (!q || q.type !== 'multi') return;
+					const sortedQ = currentSortedQuestion();
+					if (!q || !sortedQ || q.type !== 'multi') return;
 					const selected = selectedOptions.get(currentTab);
 					if (!selected) return;
-					if (selected.has(idx)) {
-						selected.delete(idx);
+					// Convert display index to original index
+					const opt = sortedQ.options[displayIdx];
+					if (!opt) return;
+					const originalIndex = q.options.indexOf(opt);
+					if (originalIndex === -1) return;
+					if (selected.has(originalIndex)) {
+						selected.delete(originalIndex);
 					} else {
-						selected.add(idx);
+						selected.add(originalIndex);
 					}
 				}
 
@@ -648,13 +654,11 @@ export default function question(pi: ExtensionAPI) {
 
 						if (isMultiQ) {
 							const items = getSelectedItems();
+							// Multi-select: require at least one option selected
 							if (items.length === 0) {
-								items.push({
-									value: NO_CHOICE,
-									label: '(no choice)',
-									description: undefined,
-									wasCustom: false,
-								});
+								requireSelectionMode = true;
+								refresh();
+								return true;
 							}
 							saveMultiAnswer(currentTab, items);
 							advanceAfterAnswer();
@@ -677,6 +681,13 @@ export default function question(pi: ExtensionAPI) {
 				}
 
 				function handleInput(data: string) {
+					// Handle requireSelectionMode - dismiss warning on any key
+					if (requireSelectionMode) {
+						requireSelectionMode = false;
+						refresh();
+						return;
+					}
+
 					if (inputMode) {
 						if (handleOtherInput(data)) return;
 					}
@@ -687,7 +698,6 @@ export default function question(pi: ExtensionAPI) {
 
 					if (currentTab === questions.length) {
 						if (handleSubmitTabInput(data)) return;
-						return;
 					}
 
 					if (handleOptionNavigation(data)) return;
@@ -888,6 +898,12 @@ export default function question(pi: ExtensionAPI) {
 					isMultiQ: boolean,
 					add: (s: string) => void,
 				) {
+					// Show warning if user tried to advance without selection
+					if (requireSelectionMode) {
+						add(theme.fg('warning', ' ⚠ Please select at least one option'));
+						lines.push('');
+					}
+
 					addWrappedText(` ${q.prompt}`, width, (s) => theme.fg('muted', s), add);
 					lines.push('');
 					renderOptions(opts, isMultiQ, width, add);
@@ -908,10 +924,13 @@ export default function question(pi: ExtensionAPI) {
 					isMulti: boolean,
 					isMultiQ: boolean,
 					repromptMode: boolean,
+					requireSelectionMode: boolean,
 					add: (s: string) => void,
 				) {
 					if (repromptMode) {
 						add(theme.fg('warning', ' ↑↓←→ Answer a question • Esc cancel'));
+					} else if (requireSelectionMode) {
+						add(theme.fg('dim', ' Press any key to continue...'));
 					} else {
 						const help = isMulti
 							? isMultiQ
@@ -951,7 +970,7 @@ export default function question(pi: ExtensionAPI) {
 
 					lines.push('');
 					if (!inputMode) {
-						renderHelpText(isMulti, isMultiQ, repromptMode, add);
+						renderHelpText(isMulti, isMultiQ, repromptMode, requireSelectionMode, add);
 					}
 					add(theme.fg('accent', '─'.repeat(width)));
 

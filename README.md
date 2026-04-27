@@ -9,6 +9,7 @@ Unified question tool for the pi coding agent with single/multi-question support
 
 - **Single-select questions**: Radio-style selection with keyboard navigation
 - **Multi-select questions**: Checkbox-style selection for multiple answers
+- **Required selection**: Multi-select requires at least one option before advancing
 - **Per-item notes**: Press (n) on any selected item to add a note (multi-select only)
 - **Recommended options**: Pre-select and highlight recommended choices
 - **Custom input**: "Other" option with inline text editor for free-form input
@@ -317,8 +318,7 @@ Example with multi-line content:
 | Value | Meaning |
 |-------|---------|
 | `(other)` | User selected "Other" and entered custom text |
-| `(no choice)` | User explicitly selected "no choice" option |
-| `(no selection)` | Multi-select with no options selected |
+| `(no selection)` | **Note:** Multi-select with no options selected is now prevented by the UI. Users must select at least one option to proceed.
 
 ## Development
 

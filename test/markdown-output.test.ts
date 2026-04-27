@@ -241,7 +241,7 @@ describe("Markdown Output", () => {
 			expect(markdown).toContain("- [x] tmux");
 		});
 
-		it("shows no selection for empty multi-select", async () => {
+		it("renders multi-select with selections (empty prevented by UI)", async () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 				registerCommand: vi.fn(),
@@ -256,7 +256,10 @@ describe("Markdown Output", () => {
 				return Promise.resolve({
 					questions: [{ questionTopic: "Features", prompt: "Select features", type: "multi", options: [] }],
 					answers: [{
-						items: [],
+						items: [
+							{ value: "auth", label: "Auth", wasCustom: false },
+							{ value: "db", label: "Database", wasCustom: false },
+						],
 					}],
 					cancelled: false,
 				});
@@ -281,7 +284,8 @@ describe("Markdown Output", () => {
 			expect(markdown).toContain("## Question - Features");
 			expect(markdown).toContain("Select features");
 			expect(markdown).toContain("### Answer");
-			expect(markdown).toContain("- (no selection)");
+			expect(markdown).toContain("- [x] Auth");
+			expect(markdown).toContain("- [x] Database");
 		});
 
 		it("handles mixed custom and standard options in multi-select", async () => {
@@ -738,7 +742,7 @@ describe("renderResult", () => {
 			expect(rendered.text).toContain("- [x] Docker");
 		});
 
-		it("renders empty multi-select as no selection", () => {
+		it("renders multi-select with selections (empty prevented by UI)", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 				registerCommand: vi.fn(),
@@ -753,7 +757,10 @@ describe("renderResult", () => {
 				details: {
 					questions: [{ questionTopic: "Opts", prompt: "Select options", type: "multi", options: [] }],
 					answers: [{
-						items: [],
+						items: [
+							{ value: "git", label: "Git", wasCustom: false },
+							{ value: "docker", label: "Docker", wasCustom: false },
+						],
 					}],
 					cancelled: false,
 				},
@@ -764,7 +771,8 @@ describe("renderResult", () => {
 			expect(rendered.text).toContain("## Question - Opts");
 			expect(rendered.text).toContain("Select options");
 			expect(rendered.text).toContain("### Answer");
-			expect(rendered.text).toContain("- (no selection)");
+			expect(rendered.text).toContain("- [x] Git");
+			expect(rendered.text).toContain("- [x] Docker");
 		});
 	});
 
