@@ -814,11 +814,6 @@ export default function question(pi: ExtensionAPI) {
 						}
 					}
 					lines.push('');
-					add(theme.fg('muted', ' Your answer:'));
-					const typedText = editor.getText();
-					if (typedText) {
-						add(` ${typedText}`);
-					}
 					for (const line of editor.render(width - 2)) {
 						add(` ${line}`);
 					}
