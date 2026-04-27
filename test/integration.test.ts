@@ -394,14 +394,14 @@ describe("Integration: Full Questionnaire Workflow", () => {
 	});
 
 	describe("Edge Cases", () => {
-		it("handles empty multi-select selection", async () => {
+		it("handles multi-select with all options selected", async () => {
 			const mockCustom = vi.fn().mockImplementation(() => {
 				return Promise.resolve({
 					questions: [
-						{ questionTopic: "Optional", prompt: "Select optional items", type: "multi", options: [] },
+						{ questionTopic: "All", prompt: "Select all items", type: "multi", options: [] },
 					],
 					answers: [
-						{ items: [  ] },
+						{ items: [{ value: "git", label: "Git", wasCustom: false }, { value: "docker", label: "Docker", wasCustom: false }] },
 					],
 					cancelled: false,
 				} as QuestionnaireResult);
@@ -411,7 +411,7 @@ describe("Integration: Full Questionnaire Workflow", () => {
 				"call-id",
 				{
 					questions: [
-						{ questionTopic: "Optional", type: "multi", prompt: "Select optional items", options: [{ value: "git", label: "Git" }] },
+						{ questionTopic: "All", type: "multi", prompt: "Select all items", options: [{ value: "git", label: "Git" }, { value: "docker", label: "Docker" }] },
 					],
 				},
 				new AbortController().signal,
@@ -420,7 +420,8 @@ describe("Integration: Full Questionnaire Workflow", () => {
 			);
 
 			const markdown = result.content[0].text;
-			expect(markdown).toContain("(no selection)");
+			expect(markdown).toContain("- [x] Git");
+			expect(markdown).toContain("- [x] Docker");
 		});
 
 		it("handles special characters in labels", async () => {

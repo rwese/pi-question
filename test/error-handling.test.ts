@@ -63,14 +63,6 @@ describe("Error Handling v2", () => {
 			expect(result).toBeInstanceOf(Promise);
 		});
 
-		it.skip("returns error for missing required fields (type validation)", () => {
-			// Schema validation handles this case in production
-		});
-
-		it.skip("returns error for question without id (type validation)", () => {
-			// Schema validation handles this case in production
-		});
-
 		it("returns MULTIPLE_RECOMMENDED error for single-select with multiple recommended", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
