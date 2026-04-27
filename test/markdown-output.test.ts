@@ -73,7 +73,7 @@ describe("Markdown Output", () => {
 			const markdown = result.content[0].text;
 			expect(markdown).toContain("## Question - Language");
 			expect(markdown).toContain("Choose your language");
-			expect(markdown).toContain("#### User answers");
+			expect(markdown).toContain("### Answer");
 			expect(markdown).toContain("- TypeScript");
 			expect(markdown).not.toContain("[x]"); // single-select uses plain bullet
 		});
@@ -110,7 +110,7 @@ describe("Markdown Output", () => {
 			const markdown = result.content[0].text;
 			expect(markdown).toContain("## Question - Language");
 			expect(markdown).toContain("Choose your language");
-			expect(markdown).toContain("#### User answers");
+			expect(markdown).toContain("### Answer");
 			expect(markdown).toContain("- Python");
 			// Should NOT contain "(custom)" prefix - label IS the user's input
 			expect(markdown).not.toContain("(custom)");
@@ -154,7 +154,7 @@ describe("Markdown Output", () => {
 			const markdown = result.content[0].text;
 			expect(markdown).toContain("## Question - Reason");
 			expect(markdown).toContain("Why this choice?");
-			expect(markdown).toContain("#### User answers");
+			expect(markdown).toContain("### Answer");
 			expect(markdown).toContain("- TypeScript");
 			// Message is stored in answer but NOT in markdown output
 			expect(result.details.answers[0]).toHaveProperty("message", "Great type safety");
@@ -235,7 +235,7 @@ describe("Markdown Output", () => {
 			const markdown = result.content[0].text;
 			expect(markdown).toContain("## Question - Tools");
 			expect(markdown).toContain("Select your tools");
-			expect(markdown).toContain("#### User answers");
+			expect(markdown).toContain("### Answer");
 			expect(markdown).toContain("- [x] Git");
 			expect(markdown).toContain("- [x] Docker");
 			expect(markdown).toContain("- [x] tmux");
@@ -280,7 +280,7 @@ describe("Markdown Output", () => {
 			const markdown = result.content[0].text;
 			expect(markdown).toContain("## Question - Features");
 			expect(markdown).toContain("Select features");
-			expect(markdown).toContain("#### User answers");
+			expect(markdown).toContain("### Answer");
 			expect(markdown).toContain("- (no selection)");
 		});
 
@@ -368,11 +368,11 @@ describe("Markdown Output", () => {
 			const markdown = result.content[0].text;
 			expect(markdown).toContain("## Question - Language");
 			expect(markdown).toContain("Choose your language");
-			expect(markdown).toContain("#### User answers");
+			expect(markdown).toContain("### Answer");
 			expect(markdown).toContain("- Go");
 			expect(markdown).toContain("## Question - Tools");
 			expect(markdown).toContain("Select your tools");
-			expect(markdown).toContain("#### User answers");
+			expect(markdown).toContain("### Answer");
 			expect(markdown).toContain("- [x] Git");
 			expect(markdown).toContain("- [x] Docker");
 		});
@@ -672,7 +672,7 @@ describe("renderResult", () => {
 			expect(rendered).toBeDefined();
 			expect(rendered.text).toContain("## Question - Lang");
 			expect(rendered.text).toContain("Choose language");
-			expect(rendered.text).toContain("#### User answers");
+			expect(rendered.text).toContain("### Answer");
 			expect(rendered.text).toContain("- Go");
 		});
 
@@ -700,7 +700,7 @@ describe("renderResult", () => {
 
 			expect(rendered.text).toContain("## Question - Lang");
 			expect(rendered.text).toContain("Why?");
-			expect(rendered.text).toContain("#### User answers");
+			expect(rendered.text).toContain("### Answer");
 			expect(rendered.text).toContain("- Go");
 			// Message is stored but not displayed in markdown
 			expect(rendered.text).toContain('Note: "Fast compilation"');
@@ -733,7 +733,7 @@ describe("renderResult", () => {
 
 			expect(rendered.text).toContain("## Question - Tools");
 			expect(rendered.text).toContain("Select tools");
-			expect(rendered.text).toContain("#### User answers");
+			expect(rendered.text).toContain("### Answer");
 			expect(rendered.text).toContain("- [x] Git");
 			expect(rendered.text).toContain("- [x] Docker");
 		});
@@ -763,7 +763,7 @@ describe("renderResult", () => {
 
 			expect(rendered.text).toContain("## Question - Opts");
 			expect(rendered.text).toContain("Select options");
-			expect(rendered.text).toContain("#### User answers");
+			expect(rendered.text).toContain("### Answer");
 			expect(rendered.text).toContain("- (no selection)");
 		});
 	});
