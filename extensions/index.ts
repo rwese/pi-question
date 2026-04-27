@@ -995,6 +995,7 @@ export default function question(pi: ExtensionAPI) {
 				if (!answer) continue;
 
 				lines.push(`## Question - ${q.questionTopic}`);
+				lines.push('');
 				lines.push(q.prompt);
 				lines.push('');
 				lines.push('### Answer');
@@ -1068,6 +1069,7 @@ export default function question(pi: ExtensionAPI) {
 				if (!answer) continue;
 
 				lines.push(`## Question - ${q.questionTopic}`);
+				lines.push('');
 				lines.push(q.prompt);
 				lines.push('');
 				lines.push('### Answer');
