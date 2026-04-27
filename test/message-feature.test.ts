@@ -214,7 +214,7 @@ describe("Message Feature v2", () => {
 			expect(result.content[0].text).toContain("- [x] tmux");
 			expect(result.content[0].text).toContain("## Question - Tools");
 			expect(result.content[0].text).toContain("Select tools");
-			expect(result.content[0].text).toContain("#### User answers");
+			expect(result.content[0].text).toContain("### Answer");
 			expect(result.content[0].text).not.toContain("User Comment:");
 		});
 	});

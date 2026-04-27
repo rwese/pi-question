@@ -997,7 +997,7 @@ export default function question(pi: ExtensionAPI) {
 				lines.push(`## Question - ${q.questionTopic}`);
 				lines.push(q.prompt);
 				lines.push('');
-				lines.push('#### User answers');
+				lines.push('### Answer');
 				lines.push('');
 
 				if (q.type === 'multi' && 'items' in answer && Array.isArray(answer.items)) {
@@ -1070,7 +1070,7 @@ export default function question(pi: ExtensionAPI) {
 				lines.push(`## Question - ${q.questionTopic}`);
 				lines.push(q.prompt);
 				lines.push('');
-				lines.push('#### User answers');
+				lines.push('### Answer');
 				lines.push('');
 
 				if (q.type === 'multi' && 'items' in answer && Array.isArray(answer.items)) {
