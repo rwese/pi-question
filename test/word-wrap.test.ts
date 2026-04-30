@@ -33,7 +33,7 @@ describe('Word-Wrap: Multi-line Text Support', () => {
 		it('should have correct description', () => {
 			const toolCall = mockPi.registerTool.mock.calls[0][0];
 			expect(toolCall.description).toBe(
-				'Ask questionaires with single and multiple choice questions, with detailed notes and explainers to collect answers, clarification, details.',
+				'Present a question to the user and collect their answer.\n\n- Single select: user picks one option\n- Multi select: user picks one or more options.\n\nReturns answers in a clean markdown format.\n\nThe user may give Other answers too.',
 			);
 		});
 

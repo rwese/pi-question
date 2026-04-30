@@ -461,3 +461,281 @@ describe('Navigation - Must Answer Requirement', () => {
 		});
 	});
 });
+
+describe('Regression: Single-Select Answer Index', () => {
+	let mockPi: ReturnType<typeof createMockPi>;
+	let registeredTool: ReturnType<typeof vi.fn>['mock']['calls'][0][0];
+	let mockCustom: ReturnType<typeof vi.fn>;
+	let capturedDone: ((result: unknown) => void) | null;
+	let handlers: { render: (width: number) => string[]; handleInput: (key: string) => void } | null;
+
+	beforeEach(() => {
+		mockPi = createMockPi();
+		questionnaire(mockPi);
+		registeredTool = mockPi.registerTool.mock.calls[0][0];
+
+		capturedDone = null;
+		handlers = null;
+
+		mockCustom = vi.fn().mockImplementation((callback: (...args: unknown[]) => void) => {
+			const tui = createMockTui();
+			const theme = createMockTheme();
+
+			handlers = callback(tui, theme, {}, (result: unknown) => {
+				if (capturedDone) capturedDone(result);
+			});
+
+			return new Promise((resolve) => {
+				capturedDone = (result: unknown) => resolve(result);
+			});
+		});
+	});
+
+	it('should save correct original index when recommended option is last in original array', async () => {
+		// Scenario: recommended option is LAST in original options (index 3)
+		// After sorting by recommended, it becomes FIRST in display (index 0)
+		// The saved index should be 4 (original index 3 + 1), not 1 (display index 0 + 1)
+		const resultPromise = registeredTool.execute(
+			'call-id',
+			{
+				questions: [
+					{
+						questionTopic: 'Editor',
+						prompt: 'Choose editor',
+						type: 'single',
+						options: [
+							{ value: 'vscode', label: 'VS Code' },
+							{ value: 'jetbrains', label: 'JetBrains' },
+							{ value: 'vim', label: 'Vim' },
+							{ value: 'cursor', label: 'Cursor', recommended: true },
+						],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() },
+		);
+
+		await new Promise((r) => setTimeout(r, 10));
+
+		// Verify Cursor is pre-selected (display index 0 after sorting)
+		const rendered = handlers!.render(80);
+		const cursorLine = rendered.find((line: string) => line.includes('Cursor'));
+		expect(cursorLine).toBeDefined();
+
+		// Press Enter to accept the recommended option
+		handlers!.handleInput('enter');
+
+		const result = await resultPromise;
+
+		// The index should be 4 (original index 3 + 1), not 1 (display index 0 + 1)
+		expect(result.details.answers).toHaveLength(1);
+		const answer = result.details.answers[0] as { value: string; index: number };
+		expect(answer.value).toBe('cursor');
+		expect(answer.index).toBe(4);
+	});
+
+	it('should save correct original index when recommended option is middle of array', async () => {
+		// Scenario: recommended option is in the MIDDLE (index 2)
+		// After sorting, it becomes FIRST
+		// The saved index should still be 3 (original index 2 + 1)
+		const resultPromise = registeredTool.execute(
+			'call-id',
+			{
+				questions: [
+					{
+						questionTopic: 'Tools',
+						prompt: 'Choose tool',
+						type: 'single',
+						options: [
+							{ value: 'git', label: 'Git' },
+							{ value: 'docker', label: 'Docker' },
+							{ value: 'vim', label: 'Vim', recommended: true },
+							{ value: 'tmux', label: 'tmux' },
+						],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() },
+		);
+
+		await new Promise((r) => setTimeout(r, 10));
+
+		// Verify Vim is pre-selected
+		const rendered = handlers!.render(80);
+		const vimLine = rendered.find((line: string) => line.includes('Vim'));
+		expect(vimLine).toBeDefined();
+
+		// Press Enter to accept
+		handlers!.handleInput('enter');
+
+		const result = await resultPromise;
+
+		// The index should be 3 (original index 2 + 1), not 1 (display index 0 + 1)
+		expect(result.details.answers).toHaveLength(1);
+		const answer = result.details.answers[0] as { value: string; index: number };
+		expect(answer.value).toBe('vim');
+		expect(answer.index).toBe(3);
+	});
+});
+
+describe('Regression: Multi-Select Recommended Pre-selection', () => {
+	let mockPi: ReturnType<typeof createMockPi>;
+	let registeredTool: ReturnType<typeof vi.fn>['mock']['calls'][0][0];
+	let mockCustom: ReturnType<typeof vi.fn>;
+	let capturedDone: ((result: unknown) => void) | null;
+	let handlers: { render: (width: number) => string[]; handleInput: (key: string) => void } | null;
+
+	beforeEach(() => {
+		mockPi = createMockPi();
+		questionnaire(mockPi);
+		registeredTool = mockPi.registerTool.mock.calls[0][0];
+
+		capturedDone = null;
+		handlers = null;
+
+		mockCustom = vi.fn().mockImplementation((callback: (...args: unknown[]) => void) => {
+			const tui = createMockTui();
+			const theme = createMockTheme();
+
+			handlers = callback(tui, theme, {}, (result: unknown) => {
+				if (capturedDone) capturedDone(result);
+			});
+
+			return new Promise((resolve) => {
+				capturedDone = (result: unknown) => resolve(result);
+			});
+		});
+	});
+
+	it('should pre-select recommended option when it is last in original array', async () => {
+		// infra is at original index 3, after sorting it becomes display index 0
+		const resultPromise = registeredTool.execute(
+			'call-id',
+			{
+				questions: [
+					{
+						questionTopic: 'Stack',
+						prompt: 'Select areas',
+						type: 'multi',
+						options: [
+							{ value: 'frontend', label: 'Frontend' },
+							{ value: 'backend', label: 'Backend' },
+							{ value: 'mobile', label: 'Mobile' },
+							{ value: 'infra', label: 'Infrastructure', recommended: true },
+						],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() },
+		);
+
+		await new Promise((r) => setTimeout(r, 10));
+
+		// Render should show Infrastructure pre-selected with checkmark
+		const rendered = handlers!.render(80);
+
+		// Find Infrastructure line
+		const infraLine = rendered.find((line: string) => line.includes('Infrastructure'));
+		expect(infraLine).toBeDefined();
+
+		// Check that it has the selected indicator (checkmark)
+		// Multi-select shows ☑ for selected, ☐ for not selected
+		const infraSelected = rendered.some((line: string) =>
+			line.includes('☑') && line.includes('Infrastructure')
+		);
+		expect(infraSelected).toBe(true);
+
+		// Clean up
+		handlers!.handleInput('escape');
+		await resultPromise;
+	});
+
+	it('should pre-select recommended option when it is middle of original array', async () => {
+		// docker is at original index 1, after sorting it becomes display index 0
+		const resultPromise = registeredTool.execute(
+			'call-id',
+			{
+				questions: [
+					{
+						questionTopic: 'Tools',
+						prompt: 'Select tools',
+						type: 'multi',
+						options: [
+							{ value: 'git', label: 'Git' },
+							{ value: 'docker', label: 'Docker', recommended: true },
+							{ value: 'k8s', label: 'Kubernetes' },
+						],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() },
+		);
+
+		await new Promise((r) => setTimeout(r, 10));
+
+		const rendered = handlers!.render(80);
+
+		// Docker should be pre-selected
+		const dockerSelected = rendered.some((line: string) =>
+			line.includes('☑') && line.includes('Docker')
+		);
+		expect(dockerSelected).toBe(true);
+
+		// Clean up
+		handlers!.handleInput('escape');
+		await resultPromise;
+	});
+
+	it('should save correct original indices in multi-select answer', async () => {
+		// docker at original index 1, k8s at original index 2
+		const resultPromise = registeredTool.execute(
+			'call-id',
+			{
+				questions: [
+					{
+						questionTopic: 'Tools',
+						prompt: 'Select tools',
+						type: 'multi',
+						options: [
+							{ value: 'git', label: 'Git' },
+							{ value: 'docker', label: 'Docker', recommended: true },
+							{ value: 'k8s', label: 'Kubernetes' },
+						],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() },
+		);
+
+		await new Promise((r) => setTimeout(r, 10));
+
+		// Docker should be pre-selected
+		// Navigate to k8s (Docker=0, Git=1, k8s=2 after sorting)
+		handlers!.handleInput('down');
+		handlers!.handleInput('down');
+		handlers!.handleInput(' '); // Select k8s
+
+		// Submit
+		handlers!.handleInput('enter');
+
+		const result = await resultPromise;
+
+		// Both docker (original index 1) and k8s (original index 2) should be selected
+		const answer = result.details.answers[0] as { items: Array<{ value: string; label: string }> };
+		expect(answer.items.length).toBe(2);
+
+		const values = answer.items.map((i: { value: string }) => i.value);
+		expect(values).toContain('docker');
+		expect(values).toContain('k8s');
+	});
+});
