@@ -32,11 +32,11 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "peerDependencies": {
-    "@mariozechner/pi-coding-agent": "*",
-    "@sinclair/typebox": "*"
+  "dependencies": {
+    "@mariozechner/pi-tui": "*"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@mariozechner/pi-coding-agent": "*",
     "@sinclair/typebox": "*",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
