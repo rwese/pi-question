@@ -207,7 +207,7 @@ export default function question(pi: ExtensionAPI) {
 		name: 'question',
 		label: 'Question',
 		description:
-			'Collect single/multiple choice answers with optional notes. Output: markdown.',
+			'Ask questionaires with single and multiple choice questions, with detailed notes and explainers to collect answers, clarification, details.',
 		parameters: QuestionnaireParams,
 
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
