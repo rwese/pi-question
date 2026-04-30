@@ -147,27 +147,57 @@ const isNonInteractive = process.argv.includes('--print') || process.argv.includ
 // Schema
 const QuestionOptionSchema = Type.Object(
 	{
-		value: Type.String(),
-		label: Type.String(),
-		description: Type.Optional(Type.String()),
-		recommended: Type.Optional(Type.Boolean()),
+		value: Type.String({
+			description:
+				"Value for this option. Use lowercase, hyphenated (e.g., 'cake'). This appears in the answer.",
+		}),
+		label: Type.String({
+			description: "Display text shown to the user (e.g., 'Yes, cake is the best!').",
+		}),
+		description: Type.Optional(
+			Type.String({
+				description:
+					"Optional secondary descriptive text shown below the label to provide context. (e.g., 'Because it reminds me of my birthday')",
+			}),
+		),
+		recommended: Type.Optional(
+			Type.Boolean({
+				description: 'If true, highlights and pre-selects this option.',
+			}),
+		),
 	},
 	{ additionalProperties: false },
 );
 
 const QuestionSchema = Type.Object(
 	{
-		questionTopic: Type.String(),
-		prompt: Type.String(),
-		type: Type.Optional(Type.Union([Type.Literal('single'), Type.Literal('multi')])),
-		options: Type.Array(QuestionOptionSchema, { minItems: 1 }),
+		questionTopic: Type.String({
+			description:
+				"Short identifier, used for tab label (e.g., 'deploy-confirm'). Not shown to the user.",
+		}),
+		prompt: Type.String({
+			description:
+				'The question to display. Be specific and concise. End with a question mark.',
+		}),
+		type: Type.Optional(
+			Type.Union([Type.Literal('single'), Type.Literal('multi')], {
+				description: "'single' allows one answer. 'multi' allows multiple answers.",
+			}),
+		),
+		options: Type.Array(QuestionOptionSchema, {
+			minItems: 1,
+			description: 'Available choices for the user. Must have at least 1 option.',
+		}),
 	},
 	{ additionalProperties: false },
 );
 
 const QuestionnaireParams = Type.Object(
 	{
-		questions: Type.Array(QuestionSchema, { minItems: 1 }),
+		questions: Type.Array(QuestionSchema, {
+			minItems: 1,
+			description: 'Array of questions to ask.',
+		}),
 	},
 	{ additionalProperties: false },
 );
@@ -207,7 +237,7 @@ export default function question(pi: ExtensionAPI) {
 		name: 'question',
 		label: 'Question',
 		description:
-			'Ask questionaires with single and multiple choice questions, with detailed notes and explainers to collect answers, clarification, details.',
+			'Present a question to the user and collect their answer.\n\n- Single select: user picks one option\n- Multi select: user picks one or more options.\n\nReturns answers in a clean markdown format.\n\nThe user may give Other answers too.',
 		parameters: QuestionnaireParams,
 
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
@@ -281,15 +311,20 @@ export default function question(pi: ExtensionAPI) {
 					}),
 				}));
 
-				// Initialize selected options with recommended (using sorted indices)
+				// Initialize selected options with recommended (using ORIGINAL indices)
 				for (let i = 0; i < sortedQuestions.length; i++) {
-					const q = sortedQuestions[i];
-					if (!q) continue;
-					if (q.type === 'multi') {
+					const sortedQ = sortedQuestions[i];
+					const originalQ = questions[i];
+					if (!sortedQ || !originalQ) continue;
+					if (sortedQ.type === 'multi') {
 						const selected = new Set<number>();
-						q.options.forEach((opt, idx) => {
+						sortedQ.options.forEach((opt) => {
 							if (opt.recommended) {
-								selected.add(idx);
+								// Find original index in the UNSORTED original array
+								const originalIdx = originalQ.options.indexOf(opt);
+								if (originalIdx !== -1) {
+									selected.add(originalIdx);
+								}
 							}
 						});
 						selectedOptions.set(i, selected);
@@ -342,7 +377,11 @@ export default function question(pi: ExtensionAPI) {
 					const q = currentSortedQuestion();
 					if (!q) return [];
 					// Options are sorted by recommended in sortedQuestions (used for display)
-					const filteredOptions = q.options.filter((opt) => opt.value !== OTHER_VALUE);
+					const filteredOptions = q.options.filter(
+						(opt) =>
+							opt.value !== OTHER_VALUE &&
+							opt.label.toLowerCase() !== OTHER_LABEL.toLowerCase(),
+					);
 					const opts: RenderOption[] = [...filteredOptions];
 					// Other always available at the end
 					opts.push({ value: OTHER_VALUE, label: OTHER_LABEL, isOther: true });
@@ -665,13 +704,17 @@ export default function question(pi: ExtensionAPI) {
 							return true;
 						}
 
+						// Find original index for correct answer serialization
+						const q = currentQuestion();
+						const originalIndex = q ? q.options.indexOf(opt) + 1 : optionIndex + 1;
+
 						saveSingleAnswer(
 							currentTab,
 							opt.value,
 							opt.label,
 							opt.description,
 							false,
-							optionIndex + 1,
+							originalIndex,
 						);
 						advanceAfterAnswer();
 						return true;

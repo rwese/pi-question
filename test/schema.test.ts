@@ -4,24 +4,36 @@ import { Type } from "@sinclair/typebox";
 // Updated schemas from extension
 const QuestionOptionSchema = Type.Object(
 	{
-		value: Type.String({ description: "The value returned when selected" }),
-		label: Type.String({ description: "Display label for the option" }),
-		description: Type.Optional(Type.String({ description: "Optional description shown below label" })),
-		recommended: Type.Optional(Type.Boolean({ description: "Pre-select and highlight this option" })),
+		value: Type.String({ description: "Value returned when this option is selected" }),
+		label: Type.String({ description: "Display label shown to user" }),
+		description: Type.Optional(
+			Type.String({ description: "Optional explanation shown below the label" }),
+		),
+		recommended: Type.Optional(
+			Type.Boolean({
+				description:
+					"Pre-select this option (UI hint only). Note: single-select questions can only have one recommended option",
+			}),
+		),
 	},
 	{ additionalProperties: false },
 );
 
 const QuestionSchema = Type.Object(
 	{
-		questionTopic: Type.String({ description: "Short label for tab bar, e.g. 'Language', 'Tools'" }),
-		prompt: Type.String({ description: "The full question text displayed to the user" }),
+		questionTopic: Type.String({
+			description: "Short label for tab bar, e.g. 'Language', 'Tools'",
+		}),
+		prompt: Type.String({ description: "Question text shown to the user" }),
 		type: Type.Optional(
 			Type.Union([Type.Literal("single"), Type.Literal("multi")], {
-				description: "Question type: 'single' (radio) or 'multi' (checkbox). Default: 'single'",
+				description: "'single' = radio buttons, 'multi' = checkboxes (default: single)",
 			}),
 		),
-		options: Type.Array(QuestionOptionSchema, { description: "Available options to choose from", minItems: 1 }),
+		options: Type.Array(QuestionOptionSchema, {
+			description: "Do NOT include 'Other' - it's automatically appended for free-form input",
+			minItems: 1,
+		}),
 	},
 	{ additionalProperties: false },
 );

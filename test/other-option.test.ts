@@ -359,4 +359,90 @@ describe("Other Option - Regression Tests", () => {
 			expect(answer.label).toBe("Zig");
 		});
 	});
+
+	describe("Regression: Other option should not appear twice", () => {
+		it("should filter out 'Other' if model includes it in options", async () => {
+			const mockCustom = setupMock();
+
+			const resultPromise = registeredTool.execute(
+				"call-id",
+				{
+					questions: [
+						{
+							questionTopic: "Language",
+							prompt: "Select a language",
+							type: "single",
+							options: [
+								{ value: "go", label: "Go" },
+								{ value: "other", label: "Other" }, // Model accidentally included this
+							],
+						},
+					],
+				},
+				new AbortController().signal,
+				vi.fn(),
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
+			);
+
+			await new Promise((r) => setTimeout(r, 10));
+
+			// Render the question
+			const rendered = handlers.render(80);
+			// Should only have ONE "Other" (the auto-appended one)
+			const otherCount = rendered.filter((line: string) => line.includes("Other")).length;
+			expect(otherCount).toBe(1);
+
+			// Go should appear exactly once (not duplicated as "other" from model options)
+				const goLines = rendered.filter((line: string) => line.includes("Go"));
+				expect(goLines.length).toBe(1);
+
+			// Clean up
+			handlers.handleInput("escape");
+			const result = await resultPromise;
+			expect(result.details.cancelled).toBe(true);
+		});
+
+		it("should filter out 'other' (case-insensitive) from model options", async () => {
+			const mockCustom = setupMock();
+
+			const resultPromise = registeredTool.execute(
+				"call-id",
+				{
+					questions: [
+						{
+							questionTopic: "Language",
+							prompt: "Select a language",
+							type: "single",
+							options: [
+								{ value: "go", label: "Go" },
+								{ value: "rust", label: "Rust" },
+								{ value: "custom", label: "other" }, // lowercase "other"
+							],
+						},
+					],
+				},
+				new AbortController().signal,
+				vi.fn(),
+				{ hasUI: true, ui: { custom: mockCustom, notify: vi.fn() }, abort: vi.fn() }
+			);
+
+			await new Promise((r) => setTimeout(r, 10));
+
+			// Should have: Go, Rust, Other (auto) = 3 options total
+			// "other" should be filtered out
+			const rendered = handlers.render(80);
+
+			// Verify Go and Rust are present
+			expect(rendered.some((line: string) => line.includes("Go"))).toBe(true);
+			expect(rendered.some((line: string) => line.includes("Rust"))).toBe(true);
+
+			// Should only have one "Other" line
+			const otherLines = rendered.filter((line: string) => line.includes("Other"));
+			expect(otherLines.length).toBe(1);
+
+			// Clean up
+			handlers.handleInput("escape");
+			await resultPromise;
+		});
+	});
 });
