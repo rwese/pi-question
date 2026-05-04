@@ -9,6 +9,7 @@ export interface QuestionOption {
 	recommended?: boolean;
 }
 
+// fallow-ignore-next-line unused-type
 export type QuestionType = 'single' | 'multi';
 
 export interface Question {

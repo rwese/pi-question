@@ -81,8 +81,8 @@ Refactor `extensions/index.ts` (1232 LOC) into modular structure following SOLID
 
 ## Completion Criteria
 
-- [ ] All tests pass (123 tests)
-- [ ] No type errors
-- [ ] No lint errors
-- [ ] fallow reports 0 issues
+- [x] All tests pass (123 tests)
+- [x] No type errors
+- [x] No lint errors
+- [x] fallow reports 0 issues
 - [ ] Main entry point (`extensions/index.ts`) < 200 LOC

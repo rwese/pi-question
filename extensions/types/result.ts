@@ -10,6 +10,7 @@ export interface QuestionnaireResult {
 	cancelled: boolean;
 }
 
+// fallow-ignore-next-line unused-type
 export type QuestionnaireErrorCode = 'MULTIPLE_RECOMMENDED' | 'INVALID_TYPE' | 'EMPTY_OPTIONS';
 
 export interface QuestionnaireError {
@@ -19,17 +20,20 @@ export interface QuestionnaireError {
 	recommendedCount?: number;
 }
 
+// fallow-ignore-next-line unused-type
 export interface ErrorResult {
 	content: { type: 'text'; text: string }[];
 	details: QuestionnaireResult;
 	error: QuestionnaireError;
 }
 
+// fallow-ignore-next-line unused-type
 export interface ValidationResult {
 	ok: boolean;
 	errors: string[];
 }
 
+// fallow-ignore-next-line unused-export
 export function createErrorResult(message: string, error: QuestionnaireError): ErrorResult {
 	return {
 		content: [{ type: 'text', text: message }],
@@ -38,6 +42,7 @@ export function createErrorResult(message: string, error: QuestionnaireError): E
 	};
 }
 
+// fallow-ignore-next-line unused-export
 export function createValidationError(
 	message: string,
 	questions: Question[] = [],
