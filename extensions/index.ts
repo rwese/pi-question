@@ -21,9 +21,11 @@ import {
 	visibleWidth,
 	wrapTextWithAnsi,
 } from '@mariozechner/pi-tui';
-import { Type } from '@sinclair/typebox';
+// Schema imports - QuestionnaireParamsSchema re-exports QuestionOptionSchema and QuestionSchema internally
+import { QuestionnaireParamsSchema } from './schema.js';
 
 // Types
+import type { QuestionnaireError } from './types/index.js';
 import type {
 	Answer,
 	MultiAnswer,
@@ -107,66 +109,6 @@ function shouldSkipRegistration(): boolean {
 	return isNonInteractive || isExtensionDisabled;
 }
 
-import type { QuestionnaireError } from './types/index.js';
-
-// Schema
-const QuestionOptionSchema = Type.Object(
-	{
-		value: Type.String({
-			description:
-				"Value for this option. Use lowercase, hyphenated (e.g., 'cake'). This appears in the answer.",
-		}),
-		label: Type.String({
-			description: "Display text shown to the user (e.g., 'Yes, cake is the best!').",
-		}),
-		description: Type.Optional(
-			Type.String({
-				description:
-					"Optional secondary descriptive text shown below the label to provide context. (e.g., 'Because it reminds me of my birthday')",
-			}),
-		),
-		recommended: Type.Optional(
-			Type.Boolean({
-				description: 'If true, highlights and pre-selects this option.',
-			}),
-		),
-	},
-	{ additionalProperties: false },
-);
-
-const QuestionSchema = Type.Object(
-	{
-		questionTopic: Type.String({
-			description:
-				"Short identifier, used for tab label (e.g., 'deploy-confirm'). Not shown to the user.",
-		}),
-		prompt: Type.String({
-			description:
-				'The question to display. Be specific and concise. End with a question mark.',
-		}),
-		type: Type.Optional(
-			Type.Union([Type.Literal('single'), Type.Literal('multi')], {
-				description: "'single' allows one answer. 'multi' allows multiple answers.",
-			}),
-		),
-		options: Type.Array(QuestionOptionSchema, {
-			minItems: 1,
-			description: 'Available choices for the user. Must have at least 1 option.',
-		}),
-	},
-	{ additionalProperties: false },
-);
-
-const QuestionnaireParams = Type.Object(
-	{
-		questions: Type.Array(QuestionSchema, {
-			minItems: 1,
-			description: 'Array of questions to ask.',
-		}),
-	},
-	{ additionalProperties: false },
-);
-
 // Re-use helper from types module
 function validationError(
 	message: string,
@@ -249,7 +191,7 @@ export default function question(pi: ExtensionAPI) {
 		label: 'Question',
 		description:
 			'Present a question to the user and collect their answer.\n\n- Single select: user picks one option\n- Multi select: user picks one or more options.\n\nReturns answers in a clean markdown format.\n\nThe user may give Other answers too.',
-		parameters: QuestionnaireParams,
+		parameters: QuestionnaireParamsSchema,
 
 		// fallow-ignore-next-line complexity
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
