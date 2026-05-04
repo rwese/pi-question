@@ -45,6 +45,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -82,6 +84,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -126,6 +130,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -164,6 +170,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -200,6 +208,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -245,6 +255,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 				registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -292,6 +304,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -335,6 +349,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -385,6 +401,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -437,6 +455,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -470,6 +490,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -505,6 +527,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -537,6 +561,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -572,6 +598,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -604,6 +632,8 @@ describe("Markdown Output", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -656,6 +686,8 @@ describe("renderResult", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -685,6 +717,8 @@ describe("renderResult", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -716,6 +750,8 @@ describe("renderResult", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -746,6 +782,8 @@ describe("renderResult", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 				registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -781,6 +819,8 @@ describe("renderResult", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -810,6 +850,8 @@ describe("renderResult", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -833,6 +875,8 @@ describe("Type Safety Edge Cases", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 				registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 
@@ -877,6 +921,8 @@ describe("Type Safety Edge Cases", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 				registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 				sendMessage: vi.fn(),
 			} as unknown as { registerTool: (tool: unknown) => void; sendMessage: (msg: unknown, opts: unknown) => void };
 

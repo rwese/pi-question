@@ -106,6 +106,8 @@ describe("Other Option - Regression Tests", () => {
 		mockPi = {
 			registerTool: vi.fn(),
 			registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			sendMessage: vi.fn(),
 		};
 

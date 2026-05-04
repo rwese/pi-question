@@ -60,6 +60,8 @@ describe("Message Feature v2", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -121,6 +123,8 @@ describe("Message Feature v2", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -171,6 +175,8 @@ describe("Message Feature v2", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -224,6 +230,8 @@ describe("Message Feature v2", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);
@@ -261,6 +269,8 @@ describe("Message Feature v2", () => {
 			const mockPi = {
 				registerTool: vi.fn(),
 					registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			} as unknown as { registerTool: (tool: unknown) => void };
 
 			questionnaire(mockPi);

@@ -144,6 +144,13 @@ function addWrappedTextWithPrefix(
 // Check for non-interactive mode (--print flag)
 const isNonInteractive = process.argv.includes('--print') || process.argv.includes('-p');
 
+// Extension state - controlled via commands and flags
+let isExtensionDisabled = false;
+
+function shouldSkipRegistration(): boolean {
+	return isNonInteractive || isExtensionDisabled;
+}
+
 // Schema
 const QuestionOptionSchema = Type.Object(
 	{
@@ -228,9 +235,53 @@ function validationError(
 }
 
 export default function question(pi: ExtensionAPI) {
-	// Skip tool registration in non-interactive mode (e.g., --print)
-	if (isNonInteractive) {
+	// Skip tool registration in non-interactive mode or when disabled
+	if (shouldSkipRegistration()) {
 		return;
+	}
+
+	// Register commands for enabling/disabling the extension
+	pi.registerCommand('pi-question:disabled', {
+		description: 'Disable the pi-question extension',
+		// eslint-disable-next-line require-await
+		handler: async (_args, ctx) => {
+			isExtensionDisabled = true;
+			// Remove question tool from active tools
+			const activeTools = pi.getActiveTools();
+			const filteredTools = activeTools.filter((t) => t !== 'question');
+			pi.setActiveTools(filteredTools);
+			ctx.ui.notify('pi-question extension disabled', 'info');
+		},
+	});
+
+	pi.registerCommand('pi-question:enabled', {
+		description: 'Enable the pi-question extension',
+		// eslint-disable-next-line require-await
+		handler: async (_args, ctx) => {
+			isExtensionDisabled = false;
+			// Add question tool back to active tools if not present
+			const activeTools = pi.getActiveTools();
+			if (!activeTools.includes('question')) {
+				pi.setActiveTools([...activeTools, 'question']);
+			}
+			ctx.ui.notify('pi-question extension enabled', 'info');
+		},
+	});
+
+	// Register flag for disabling via CLI
+	pi.registerFlag('pi-question-disabled', {
+		description: 'Disable the pi-question extension',
+		type: 'boolean',
+		default: false,
+	});
+
+	// Check if flag was set at startup
+	if (pi.getFlag('pi-question-disabled')) {
+		isExtensionDisabled = true;
+		// Remove question tool from active tools at startup
+		const activeTools = pi.getActiveTools();
+		const filteredTools = activeTools.filter((t) => t !== 'question');
+		pi.setActiveTools(filteredTools);
 	}
 
 	pi.registerTool({
@@ -240,6 +291,7 @@ export default function question(pi: ExtensionAPI) {
 			'Present a question to the user and collect their answer.\n\n- Single select: user picks one option\n- Multi select: user picks one or more options.\n\nReturns answers in a clean markdown format.\n\nThe user may give Other answers too.',
 		parameters: QuestionnaireParams,
 
+		// fallow-ignore-next-line complexity
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			if (!ctx.hasUI) {
 				return validationError(
@@ -668,6 +720,7 @@ export default function question(pi: ExtensionAPI) {
 					return false;
 				}
 
+				// fallow-ignore-next-line complexity
 				function handleOptionSelection(data: string) {
 					const q = currentQuestion();
 					const isMultiQ = isMultiSelect();
@@ -723,6 +776,7 @@ export default function question(pi: ExtensionAPI) {
 					return false;
 				}
 
+				// fallow-ignore-next-line complexity
 				function handleInput(data: string) {
 					// Handle requireSelectionMode - dismiss warning on any key
 					if (requireSelectionMode) {
@@ -754,6 +808,7 @@ export default function question(pi: ExtensionAPI) {
 					}
 				}
 
+				// fallow-ignore-next-line complexity
 				function handleNoteKey(data: string): boolean {
 					if (parseKey(data) !== 'n') return false;
 					const q = currentQuestion();
@@ -796,6 +851,7 @@ export default function question(pi: ExtensionAPI) {
 					add(` ${tabs.join('')}`);
 				}
 
+				// fallow-ignore-next-line complexity
 				function renderOptions(
 					opts: RenderOption[],
 					isMultiQ: boolean,
@@ -874,6 +930,7 @@ export default function question(pi: ExtensionAPI) {
 					add(theme.fg('dim', ' Enter to submit • Esc to cancel'));
 				}
 
+				// fallow-ignore-next-line complexity
 				function renderSubmitTab(lines: string[], add: (s: string) => void) {
 					if (repromptMode) {
 						add(theme.fg('warning', ` ⚠ ${repromptMessage}`));
@@ -1111,6 +1168,7 @@ export default function question(pi: ExtensionAPI) {
 			return new Text(text, 0, 0);
 		},
 
+		// fallow-ignore-next-line complexity
 		renderResult(result, _options, theme, _context) {
 			const details = result.details as QuestionnaireResult | undefined;
 			if (!details) {
