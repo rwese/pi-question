@@ -24,6 +24,9 @@ import {
 // Schema imports - QuestionnaireParamsSchema re-exports QuestionOptionSchema and QuestionSchema internally
 import { QuestionnaireParamsSchema } from './schema.js';
 
+// Formatters
+import { formatAnswersMarkdown, formatAnswersDisplay } from './formatters/index.js';
+
 // Types
 import type { QuestionnaireError } from './types/index.js';
 import type {
@@ -1005,52 +1008,7 @@ export default function question(pi: ExtensionAPI) {
 			}
 
 			// Format answers as markdown sections
-			const lines: string[] = [];
-			lines.push('## User answered our questions');
-			lines.push('');
-			for (let i = 0; i < questions.length; i++) {
-				const q = questions[i];
-				if (!q) continue;
-				const answer = result.answers[i];
-
-				if (!answer) continue;
-
-				lines.push(`## Question - ${q.questionTopic}`);
-				lines.push('');
-				lines.push(q.prompt);
-				lines.push('');
-				lines.push('### Answer');
-				lines.push('');
-
-				if (q.type === 'multi' && 'items' in answer && Array.isArray(answer.items)) {
-					const multiAnswer = answer as MultiAnswer;
-					for (const item of multiAnswer.items) {
-						if (item.description) {
-							lines.push(`- [x] **${item.label}** - ${item.description}`);
-						} else {
-							lines.push(`- [x] ${item.label}`);
-						}
-						if (item.note) {
-							lines.push(`  Note: ${item.note}`);
-						}
-					}
-					if (multiAnswer.items.length === 0) {
-						lines.push(`- (no selection)`);
-					}
-				} else {
-					const singleAnswer = answer as SingleAnswer;
-					if (singleAnswer.description) {
-						lines.push(`- **${singleAnswer.label}** - ${singleAnswer.description}`);
-					} else {
-						lines.push(`- ${singleAnswer.label}`);
-					}
-					if (singleAnswer.message) {
-						lines.push(`  Note: "${singleAnswer.message}"`);
-					}
-				}
-
-				lines.push('');
-			}
+			const lines = formatAnswersMarkdown(questions, result);
 
 			return {
 				content: [{ type: 'text', text: lines.join('\n') }],
@@ -1081,53 +1039,7 @@ export default function question(pi: ExtensionAPI) {
 				return new Text(theme.fg('warning', 'Cancelled'), 0, 0);
 			}
 
-			const lines: string[] = [];
-			lines.push('## User answered our questions');
-			lines.push('');
-			for (let i = 0; i < details.questions.length; i++) {
-				const q = details.questions[i];
-				if (!q) continue;
-				const answer = details.answers[i];
-				if (!answer) continue;
-
-				lines.push(`## Question - ${q.questionTopic}`);
-				lines.push('');
-				lines.push(q.prompt);
-				lines.push('');
-				lines.push('### Answer');
-				lines.push('');
-
-				if (q.type === 'multi' && 'items' in answer && Array.isArray(answer.items)) {
-					const multiAnswer = answer as MultiAnswer;
-					for (const item of multiAnswer.items) {
-						if (item.description) {
-							lines.push(`- [x] **${item.label}** - ${item.description}`);
-						} else {
-							lines.push(`- [x] ${item.label}`);
-						}
-						if (item.note) {
-							lines.push(`  Note: ${item.note}`);
-						}
-					}
-					if (multiAnswer.items.length === 0) {
-						lines.push(`- (no selection)`);
-					}
-				} else {
-					const singleAnswer = answer as SingleAnswer;
-					if (singleAnswer.description) {
-						lines.push(`- **${singleAnswer.label}** - ${singleAnswer.description}`);
-					} else {
-						lines.push(`- ${singleAnswer.label}`);
-					}
-					if (singleAnswer.message) {
-						lines.push(`  Note: "${singleAnswer.message}"`);
-					}
-				}
-
-				lines.push('');
-			}
-
-			return new Text(lines.join('\n'), 0, 0);
+			return formatAnswersDisplay(details, theme);
 		},
 	});
 }
