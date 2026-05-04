@@ -24,61 +24,17 @@ import {
 import { Type } from '@sinclair/typebox';
 
 // Types
-interface QuestionOption {
-	value: string;
-	label: string;
-	description?: string;
-	recommended?: boolean;
-}
+import type {
+	Answer,
+	MultiAnswer,
+	MultiAnswerItem,
+	Question,
+	QuestionOption,
+	QuestionnaireResult,
+	SingleAnswer,
+} from './types/index.js';
 
 type RenderOption = QuestionOption & { isOther?: boolean };
-
-type QuestionType = 'single' | 'multi';
-
-interface Question {
-	questionTopic: string;
-	prompt: string;
-	type: QuestionType;
-	options: QuestionOption[];
-}
-
-// Answer types - question order implicit in array order
-interface SingleAnswer {
-	value: string;
-	label: string;
-	description?: string;
-	wasCustom: boolean;
-	index?: number;
-	message?: string;
-}
-
-interface MultiAnswerItem {
-	value: string;
-	label: string;
-	description?: string;
-	wasCustom: boolean;
-	note?: string;
-}
-
-interface MultiAnswer {
-	items: MultiAnswerItem[];
-}
-
-type Answer = SingleAnswer | MultiAnswer;
-
-interface QuestionnaireResult {
-	questions: Question[];
-	answers: Answer[];
-	cancelled: boolean;
-}
-
-// Error types
-interface QuestionnaireError {
-	code: 'MULTIPLE_RECOMMENDED' | 'INVALID_TYPE' | 'EMPTY_OPTIONS';
-	message: string;
-	questionIndex?: number;
-	recommendedCount?: number;
-}
 
 // Constants
 const OTHER_VALUE = '__other__';
@@ -151,6 +107,8 @@ function shouldSkipRegistration(): boolean {
 	return isNonInteractive || isExtensionDisabled;
 }
 
+import type { QuestionnaireError } from './types/index.js';
+
 // Schema
 const QuestionOptionSchema = Type.Object(
 	{
@@ -209,7 +167,19 @@ const QuestionnaireParams = Type.Object(
 	{ additionalProperties: false },
 );
 
-function errorResult(
+// Re-use helper from types module
+function validationError(
+	message: string,
+	questions: Question[] = [],
+): { content: { type: 'text'; text: string }[]; details: QuestionnaireResult } {
+	return {
+		content: [{ type: 'text', text: message }],
+		details: { questions, answers: [], cancelled: true },
+	};
+}
+
+// Create error result (inline to avoid circular import)
+function createErrorResult(
 	message: string,
 	error: QuestionnaireError,
 ): {
@@ -221,16 +191,6 @@ function errorResult(
 		content: [{ type: 'text', text: message }],
 		details: { questions: [], answers: [], cancelled: true },
 		error,
-	};
-}
-
-function validationError(
-	message: string,
-	questions: Question[] = [],
-): { content: { type: 'text'; text: string }[]; details: QuestionnaireResult } {
-	return {
-		content: [{ type: 'text', text: message }],
-		details: { questions, answers: [], cancelled: true },
 	};
 }
 
@@ -318,7 +278,7 @@ export default function question(pi: ExtensionAPI) {
 				if (q.type === 'single') {
 					const recommendedCount = q.options.filter((o) => o.recommended).length;
 					if (recommendedCount > 1) {
-						return errorResult(
+						return createErrorResult(
 							`Error: Question ${i + 1} is single-select but has ${recommendedCount} recommended options`,
 							{
 								code: 'MULTIPLE_RECOMMENDED',
