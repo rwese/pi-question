@@ -26,38 +26,38 @@ Refactor `extensions/index.ts` (1232 LOC) into modular structure following SOLID
 ---
 
 ## Phase 3: Extract UI State Machine ⚠️
-- [ ] Extract QuestionnaireState class to `extensions/ui/state.ts`
+- [ ] Extract QuestionnaireState class
 - [ ] Move state variables from closure to class properties
 - [ ] Update `extensions/index.ts` to use new state class
 
-**Status**: Pending
+**Status**: Deferred (tight coupling with theme makes this complex)
 
 ---
 
 ## Phase 4: Extract Input Handlers ⚠️
-- [ ] Extract input handlers to `extensions/ui/handlers.ts`
+- [ ] Extract input handlers
 - [ ] Create handler interface
 - [ ] Update `extensions/index.ts` to use handlers
 
-**Status**: Pending
+**Status**: Deferred (depends on Phase 3)
 
 ---
 
 ## Phase 5: Extract Renderers ⚠️
-- [ ] Extract render functions to `extensions/ui/renderers.ts`
+- [ ] Extract render functions
 - [ ] Create renderer interface
 - [ ] Update `extensions/index.ts` to use renderers
 
-**Status**: Pending
+**Status**: Deferred (depends on Phase 3)
 
 ---
 
-## Phase 6: Extract Answer Formatters ⚠️
-- [ ] Extract markdown formatter to `extensions/formatters/markdown.ts`
-- [ ] Extract display formatter to `extensions/formatters/display.ts`
-- [ ] Eliminate duplication in `execute()` and `renderResult()`
+## Phase 6: Extract Answer Formatters ✅
+- [x] Extract markdown formatter to `extensions/formatters/markdown.ts`
+- [x] Extract display formatter to `extensions/formatters/display.ts`
+- [x] Eliminate duplication in `execute()` and `renderResult()`
 
-**Status**: Pending
+**Status**: Done (123 tests passing, ~60 lines deduplicated)
 
 ---
 
