@@ -88,6 +88,8 @@ describe('Multi-Select: Required Selection', () => {
 		mockPi = {
 			registerTool: vi.fn(),
 			registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			sendMessage: vi.fn(),
 		} as any;
 		questionnaire(mockPi);

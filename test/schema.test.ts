@@ -53,6 +53,7 @@ function validateSchema(schema: Record<string, unknown>, data: unknown): { ok: b
 		return "$optional" in schema;
 	}
 
+	// fallow-ignore-next-line complexity
 	function check(schema: Record<string, unknown>, value: unknown, path: string) {
 		const type = schema.type as string | undefined;
 

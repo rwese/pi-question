@@ -100,6 +100,8 @@ describe("Integration: Full Questionnaire Workflow", () => {
 		mockPi = {
 			registerTool: vi.fn(),
 			registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			sendMessage: vi.fn(),
 			// Add any other required ExtensionAPI methods
 		} as any;
@@ -531,6 +533,8 @@ describe("Integration: Answer Index Accuracy", () => {
 		const mockPi = {
 			registerTool: vi.fn(),
 			registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			sendMessage: vi.fn(),
 		} as any;
 		
@@ -603,6 +607,8 @@ describe("Integration: recommended Field Isolation", () => {
 		const mockPi = {
 			registerTool: vi.fn(),
 			registerCommand: vi.fn(),
+				registerFlag: vi.fn(),
+				getFlag: vi.fn(() => false),
 			sendMessage: vi.fn(),
 		} as any;
 		questionnaire(mockPi);

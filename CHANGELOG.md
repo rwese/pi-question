@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Code quality**: Added fallow suppressions for intentional complexity in TUI interaction handlers and test utilities
+
 ### Added
 
 - **Multi-line text support**: Question prompts and option descriptions now wrap across multiple lines instead of truncating with ellipsis

@@ -2,11 +2,9 @@
  * Shared test helpers for pi-question tests
  * Contains TUI mocks, mock Pi instances, and common test utilities
  */
+// fallow-ignore-file
 
-import { vi, beforeEach } from 'vitest';
-
-// Re-export vitest for convenience
-export { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { vi } from 'vitest';
 
 // ============================================================================
 // TUI Mock Factory
@@ -54,7 +52,6 @@ export function createMockTheme(): MockTheme {
 	};
 }
 
-// Custom callback type for questionnaire UI
 export type CustomUICallback = (
 	tui: MockTui,
 	theme: MockTheme,
@@ -93,14 +90,36 @@ export interface MockPiInstance {
 	registerTool: ReturnType<typeof vi.fn>;
 	sendMessage: ReturnType<typeof vi.fn>;
 	registerCommand: ReturnType<typeof vi.fn>;
+	registerFlag: ReturnType<typeof vi.fn>;
+	getFlag: ReturnType<typeof vi.fn>;
+	getActiveTools: ReturnType<typeof vi.fn>;
+	setActiveTools: ReturnType<typeof vi.fn>;
 }
+
+// Flag storage for tests
+const flagValues = new Map<string, unknown>();
+
+// Default active tools
+const defaultActiveTools = ['read', 'bash', 'write', 'edit', 'grep', 'find', 'ls', 'question'];
 
 export function createMockPi(): MockPiInstance {
 	return {
 		registerTool: vi.fn(),
 		sendMessage: vi.fn(),
 		registerCommand: vi.fn(),
+		registerFlag: vi.fn(),
+		getFlag: vi.fn((name: string) => flagValues.get(name) ?? false),
+		getActiveTools: vi.fn(() => [...defaultActiveTools]),
+		setActiveTools: vi.fn(),
 	};
+}
+
+export function resetMockFlags(): void {
+	flagValues.clear();
+}
+
+export function setMockFlag(name: string, value: unknown): void {
+	flagValues.set(name, value);
 }
 
 // ============================================================================
