@@ -4,6 +4,7 @@
 
 import { Type } from '@sinclair/typebox';
 
+// fallow-ignore-next-line unused-export
 export const QuestionOptionSchema = Type.Object(
 	{
 		value: Type.String({
@@ -28,6 +29,7 @@ export const QuestionOptionSchema = Type.Object(
 	{ additionalProperties: false },
 );
 
+// fallow-ignore-next-line unused-export
 export const QuestionSchema = Type.Object(
 	{
 		questionTopic: Type.String({

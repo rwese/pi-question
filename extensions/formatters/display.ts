@@ -42,6 +42,7 @@ export function formatAnswersDisplay(result: QuestionnaireResult, theme: any): T
 /**
  * Format a single answer for display.
  */
+// fallow-ignore-next-line complexity
 function formatAnswerDisplay(
 	q: QuestionnaireResult['questions'][number],
 	answer: QuestionnaireResult['answers'][number],

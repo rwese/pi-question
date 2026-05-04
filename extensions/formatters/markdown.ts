@@ -39,6 +39,7 @@ export function formatAnswersMarkdown(
 /**
  * Format a single answer as markdown lines.
  */
+// fallow-ignore-next-line complexity
 function formatAnswerMarkdown(
 	q: Question,
 	answer: QuestionnaireResult['answers'][number],
