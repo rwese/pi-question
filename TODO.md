@@ -17,11 +17,11 @@ Refactor `extensions/index.ts` (1232 LOC) into modular structure following SOLID
 ---
 
 ## Phase 2: Extract Validation ✅
-- [x] Extract validation logic to `extensions/validation.ts`
-- [x] Move schema definitions to `extensions/schema.ts`
+- [x] Extract schema definitions to `extensions/schema.ts`
+- [x] Keep validation inline (too coupled to state)
 - [x] Update imports in `extensions/index.ts`
 
-**Status**: Done (123 tests passing)
+**Status**: Done (validation remains inline due to tight coupling)
 
 ---
 
