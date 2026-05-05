@@ -48,6 +48,7 @@
     "lint-staged": "^16.4.0",
     "lockfile-lint": "^5.0.0",
     "prettier": "^3.4.0",
+
     "tsx": "^4.0.0",
     "typescript": "^5.8.0",
     "vitest": "^2.0.0"
@@ -69,6 +70,11 @@
     "format": "prettier --write extensions/",
     "typecheck": "tsc --noEmit",
     "validate": "npm run typecheck && npm run lint && npm run test",
+    "scan:secrets": "gitleaks detect --source . --verbose",
+    "scan:secrets:deep": "trufflehog filesystem .",
+    "scan:secrets:git": "trufflehog git https://github.com/rwese/pi-question.git --no-update",
+    "scan:secrets:ci": "gitleaks detect --source . --verbose --no-color",
+    "secret-allow": "gitleaks allow --skip ''",
     "version:patch": "npm version patch -m 'chore: Bump patch version' && git push && git push --tags",
     "version:minor": "npm version minor -m 'feat: Bump minor version' && git push && git push --tags",
     "version:major": "npm version major -m 'BREAKING CHANGE: Major version bump' && git push && git push --tags",

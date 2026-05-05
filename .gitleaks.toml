@@ -1,0 +1,15 @@
+# Gitleaks v8 configuration
+# Uses default rules with custom allowlist
+
+[allowlist]
+description = "Global allowlist for common false positives"
+regexes = ["localhost", "example\\.(com|org|net)", "user@example\\.com"]
+paths = [
+  "node_modules",
+  "\\.git",
+  "dist",
+  "coverage",
+  "\\.husky",
+  "package-lock\\.json$"
+]
+stopWords = ["test", "spec", "mock", "example", "placeholder", "dummy"]

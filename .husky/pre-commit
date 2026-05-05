@@ -1,2 +1,9 @@
+echo "🔍 Running secret scanning..."
+
+# Gitleaks - fast pre-commit secret detection
+gitleaks protect --staged --verbose --config .gitleaks.toml
+
+echo "✅ Secret scanning passed"
+
 npx lockfile-lint --path package-lock.json --type npm --validate-https --allowed-hosts registry.npmjs.org
 npx lint-staged
