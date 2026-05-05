@@ -123,6 +123,41 @@ function validationError(
 	};
 }
 
+/**
+ * Format questions as markdown for error feedback when extension is disabled.
+ * Shows all questions and their options so the agent can present them to the user.
+ */
+function formatQuestionsMarkdown(questions: Question[]): string[] {
+	const lines: string[] = [];
+	lines.push('## Question extension is disabled');
+	lines.push('');
+	lines.push(
+		'The question tool is currently disabled. Here are the questions that would have been asked:',
+	);
+	lines.push('');
+
+	for (const q of questions) {
+		lines.push(`### ${q.questionTopic}`);
+		lines.push('');
+		lines.push(q.prompt);
+		lines.push('');
+		lines.push('**Options:**');
+		for (const opt of q.options) {
+			const recommended = opt.recommended ? ' *(Recommended)*' : '';
+			if (opt.description) {
+				lines.push(`- **${opt.label}**${recommended} - ${opt.description}`);
+			} else {
+				lines.push(`- ${opt.label}${recommended}`);
+			}
+		}
+		lines.push('');
+		lines.push(`*Type: ${q.type === 'multi' ? 'Multi-select' : 'Single-select'}*`);
+		lines.push('');
+	}
+
+	return lines;
+}
+
 // Create error result (inline to avoid circular import)
 function createErrorResult(
 	message: string,
@@ -206,6 +241,21 @@ export default function question(pi: ExtensionAPI) {
 			}
 			if (!params.questions || params.questions.length === 0) {
 				return validationError('Error: No questions provided', []);
+			}
+
+			// Check if extension is disabled - return error with markdown of questions
+			if (isExtensionDisabled) {
+				const questions: Question[] = params.questions.map((q) => ({
+					questionTopic: q.questionTopic,
+					prompt: q.prompt,
+					type: q.type || 'single',
+					options: q.options,
+				}));
+				const markdown = formatQuestionsMarkdown(questions).join('\n');
+				return {
+					content: [{ type: 'text', text: markdown }],
+					details: { questions, answers: [], cancelled: true },
+				};
 			}
 
 			// Normalize questions with defaults

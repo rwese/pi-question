@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Multi-select option indexing bug**: Fixed `toggleOption` function to correctly convert display indices to original indices when options are sorted (e.g., recommended first). Previously, when options were sorted, selecting option B might save option C's value instead.
 
+### Fixed
+
+- **Disabled extension feedback**: When `pi-question:disabled` is called and the question tool is subsequently invoked, it now returns error feedback with markdown showing all questions and options. This allows the agent to present the questions to the user even when the extension is disabled.
+
 ## [2.1.1] - 2026-04-27
 
 ### Changed
