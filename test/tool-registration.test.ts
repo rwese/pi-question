@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { createMockPi, setupTuiMocks } from './helpers';
 
 // Setup TUI mocks before importing extension
@@ -244,5 +244,60 @@ describe('Disabled Extension', () => {
 		expect(result.content[0].text).toContain('Classic Italian dish');
 		expect(result.content[0].text).toContain('Tacos');
 		expect(result.content[0].text).toContain('Mexican delight');
+	});
+
+	it('disabled check happens FIRST - even without hasUI or questions', async () => {
+		// Re-import to get fresh module state
+		const { default: questionnaire } = await import('../extensions/index.js');
+		const mockPi = createMockPi();
+
+		questionnaire(mockPi);
+
+		const registeredTool = mockPi.registerTool.mock.calls[0][0];
+
+		// Disable the extension
+		const disableCommand = mockPi.registerCommand.mock.calls.find(
+			(call: unknown[]) => (call[0] as string) === 'pi-question:disabled',
+		);
+		if (disableCommand) {
+			const disableHandler = disableCommand[1].handler;
+			await disableHandler([], { ui: { notify: vi.fn() } });
+		}
+
+		// Execute with NO questions and NO UI - disabled check should still return markdown
+		const result = await registeredTool.execute(
+			'call-id',
+			{ questions: undefined }, // No questions
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: false }, // No UI
+		);
+
+		// Should return disabled markdown, NOT a validation error
+		expect(result.content[0].text).toContain('Question extension is disabled');
+		expect(result.details).toHaveProperty('cancelled', true);
+	});
+
+	it('setActiveTools is called when disable is invoked', async () => {
+		// Re-import to get fresh module state
+		const { default: questionnaire } = await import('../extensions/index.js');
+		const mockPi = createMockPi();
+
+		questionnaire(mockPi);
+
+		// Disable the extension
+		const disableCommand = mockPi.registerCommand.mock.calls.find(
+			(call: unknown[]) => (call[0] as string) === 'pi-question:disabled',
+		);
+		if (disableCommand) {
+			const disableHandler = disableCommand[1].handler;
+			await disableHandler([], { ui: { notify: vi.fn() } });
+		}
+
+		// Verify setActiveTools was called to remove 'question'
+		expect(mockPi.setActiveTools).toHaveBeenCalled();
+		const lastCall =
+			mockPi.setActiveTools.mock.calls[mockPi.setActiveTools.mock.calls.length - 1];
+		expect(lastCall[0]).not.toContain('question');
 	});
 });

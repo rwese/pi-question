@@ -233,19 +233,10 @@ export default function question(pi: ExtensionAPI) {
 
 		// fallow-ignore-next-line complexity
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-			if (!ctx.hasUI) {
-				return validationError(
-					'Error: UI not available (running in non-interactive mode)',
-					[],
-				);
-			}
-			if (!params.questions || params.questions.length === 0) {
-				return validationError('Error: No questions provided', []);
-			}
-
-			// Check if extension is disabled - return error with markdown of questions
+			// Check if extension is disabled FIRST - before any other checks
+			// This ensures the tool is properly disabled and returns markdown
 			if (isExtensionDisabled) {
-				const questions: Question[] = params.questions.map((q) => ({
+				const questions: Question[] = (params.questions || []).map((q) => ({
 					questionTopic: q.questionTopic,
 					prompt: q.prompt,
 					type: q.type || 'single',
@@ -256,6 +247,16 @@ export default function question(pi: ExtensionAPI) {
 					content: [{ type: 'text', text: markdown }],
 					details: { questions, answers: [], cancelled: true },
 				};
+			}
+
+			if (!ctx.hasUI) {
+				return validationError(
+					'Error: UI not available (running in non-interactive mode)',
+					[],
+				);
+			}
+			if (!params.questions || params.questions.length === 0) {
+				return validationError('Error: No questions provided', []);
 			}
 
 			// Normalize questions with defaults
