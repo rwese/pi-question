@@ -21,9 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-06-11
+
 ### Changed
 
 - **Code quality**: Added fallow suppressions for intentional complexity in TUI interaction handlers and test utilities
+- **Build toolchain**: `typecheck` now uses `tsgo` (TypeScript 7 native preview) instead of `tsc` for ~10x faster type checking; `typescript` devDep replaced with pinned `@typescript/native-preview@7.0.0-dev.20260611.2`
 
 ### Added
 

@@ -13,3 +13,6 @@ dist/
 # Environment
 .env
 .env.local.pi/
+
+# Pi agent local state (settings, per-project skills)
+.pi/
