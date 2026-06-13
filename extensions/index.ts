@@ -105,12 +105,11 @@ function addWrappedTextWithPrefix(
 // Check for non-interactive mode (--print flag)
 const isNonInteractive = process.argv.includes('--print') || process.argv.includes('-p');
 
-// Extension state - controlled via commands and flags
+// Extension state - controlled via commands and flags.
+// The tool is always registered (when the host has a UI) so the agent can
+// observe a proper rejection when called while disabled, instead of seeing
+// the tool silently disappear.
 let isExtensionDisabled = false;
-
-function shouldSkipRegistration(): boolean {
-	return isNonInteractive || isExtensionDisabled;
-}
 
 // Re-use helper from types module
 function validationError(
@@ -175,8 +174,12 @@ function createErrorResult(
 }
 
 export default function question(pi: ExtensionAPI) {
-	// Skip tool registration in non-interactive mode or when disabled
-	if (shouldSkipRegistration()) {
+	// Skip tool registration in non-interactive mode (--print/-p) - the
+	// question tool requires a UI and cannot function without one.
+	// The disabled state is intentionally NOT a reason to skip registration:
+	// the tool must stay active so calls are rejected with a proper message
+	// instead of silently disappearing from the agent's tool list.
+	if (isNonInteractive) {
 		return;
 	}
 
@@ -186,10 +189,8 @@ export default function question(pi: ExtensionAPI) {
 		// eslint-disable-next-line require-await
 		handler: async (_args, ctx) => {
 			isExtensionDisabled = true;
-			// Remove question tool from active tools
-			const activeTools = pi.getActiveTools();
-			const filteredTools = activeTools.filter((t) => t !== 'question');
-			pi.setActiveTools(filteredTools);
+			// Keep the tool registered. Calls will be rejected with a proper
+			// "extension is disabled" message by execute() (see below).
 			ctx.ui.notify('pi-question extension disabled', 'info');
 		},
 	});
@@ -199,11 +200,6 @@ export default function question(pi: ExtensionAPI) {
 		// eslint-disable-next-line require-await
 		handler: async (_args, ctx) => {
 			isExtensionDisabled = false;
-			// Add question tool back to active tools if not present
-			const activeTools = pi.getActiveTools();
-			if (!activeTools.includes('question')) {
-				pi.setActiveTools([...activeTools, 'question']);
-			}
 			ctx.ui.notify('pi-question extension enabled', 'info');
 		},
 	});
@@ -215,13 +211,11 @@ export default function question(pi: ExtensionAPI) {
 		default: false,
 	});
 
-	// Check if flag was set at startup
+	// Check if flag was set at startup. The tool remains registered so calls
+	// are rejected with a proper message rather than failing with a missing
+	// tool error.
 	if (pi.getFlag('pi-question-disabled')) {
 		isExtensionDisabled = true;
-		// Remove question tool from active tools at startup
-		const activeTools = pi.getActiveTools();
-		const filteredTools = activeTools.filter((t) => t !== 'question');
-		pi.setActiveTools(filteredTools);
 	}
 
 	pi.registerTool({

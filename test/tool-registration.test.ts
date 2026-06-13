@@ -278,7 +278,7 @@ describe('Disabled Extension', () => {
 		expect(result.details).toHaveProperty('cancelled', true);
 	});
 
-	it('setActiveTools is called when disable is invoked', async () => {
+	it('disable does NOT call setActiveTools (tool stays registered for rejection)', async () => {
 		// Re-import to get fresh module state
 		const { default: questionnaire } = await import('../extensions/index.js');
 		const mockPi = createMockPi();
@@ -294,10 +294,120 @@ describe('Disabled Extension', () => {
 			await disableHandler([], { ui: { notify: vi.fn() } });
 		}
 
-		// Verify setActiveTools was called to remove 'question'
-		expect(mockPi.setActiveTools).toHaveBeenCalled();
-		const lastCall =
-			mockPi.setActiveTools.mock.calls[mockPi.setActiveTools.mock.calls.length - 1];
-		expect(lastCall[0]).not.toContain('question');
+		// The tool must remain registered so calls are rejected with a proper
+		// message instead of failing with a "tool not found" error. The
+		// previous behaviour of removing it from the active tools list is
+		// intentionally no longer supported.
+		expect(mockPi.setActiveTools).not.toHaveBeenCalled();
+	});
+
+	it('tool remains registered and rejects with markdown after disable command', async () => {
+		// Re-import to get fresh module state
+		const { default: questionnaire } = await import('../extensions/index.js');
+		const mockPi = createMockPi();
+
+		questionnaire(mockPi);
+
+		// Tool was registered exactly once
+		expect(mockPi.registerTool).toHaveBeenCalledTimes(1);
+		const registeredTool = mockPi.registerTool.mock.calls[0][0];
+		expect(registeredTool).toHaveProperty('name', 'question');
+
+		// Disable the extension
+		const disableCommand = mockPi.registerCommand.mock.calls.find(
+			(call: unknown[]) => (call[0] as string) === 'pi-question:disabled',
+		);
+		expect(disableCommand).toBeDefined();
+		const disableHandler = disableCommand[1].handler;
+		await disableHandler([], { ui: { notify: vi.fn() } });
+
+		// Tool registration must not be replaced or removed
+		expect(mockPi.registerTool).toHaveBeenCalledTimes(1);
+
+		// Calling the tool after disable must return the rejection markdown
+		const result = await registeredTool.execute(
+			'call-id',
+			{
+				questions: [
+					{
+						questionTopic: 'Topic',
+						prompt: 'Pick one',
+						type: 'single',
+						options: [{ value: 'a', label: 'A' }],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true },
+		);
+
+		expect(result.content[0]).toHaveProperty('type', 'text');
+		expect(result.content[0].text).toContain('Question extension is disabled');
+		expect(result.details).toHaveProperty('cancelled', true);
+	});
+
+	it('enable command does NOT call setActiveTools to re-add the tool', async () => {
+		// Re-import to get fresh module state
+		const { default: questionnaire } = await import('../extensions/index.js');
+		const mockPi = createMockPi();
+
+		questionnaire(mockPi);
+
+		// Disable then re-enable
+		const disableCommand = mockPi.registerCommand.mock.calls.find(
+			(call: unknown[]) => (call[0] as string) === 'pi-question:disabled',
+		);
+		const enableCommand = mockPi.registerCommand.mock.calls.find(
+			(call: unknown[]) => (call[0] as string) === 'pi-question:enabled',
+		);
+		expect(disableCommand).toBeDefined();
+		expect(enableCommand).toBeDefined();
+
+		await disableCommand[1].handler([], { ui: { notify: vi.fn() } });
+		await enableCommand[1].handler([], { ui: { notify: vi.fn() } });
+
+		// The tool never leaves the active set - the enable command is a
+		// no-op as far as the host's active tools are concerned.
+		expect(mockPi.setActiveTools).not.toHaveBeenCalled();
+	});
+
+	it('--pi-question-disabled flag keeps the tool registered and rejects with markdown', async () => {
+		// Re-import to get fresh module state
+		const { default: questionnaire } = await import('../extensions/index.js');
+		const mockPi = createMockPi();
+
+		// Pretend the CLI flag was passed
+		mockPi.getFlag.mockImplementation((name: string) => name === 'pi-question-disabled');
+
+		questionnaire(mockPi);
+
+		// Tool is still registered
+		expect(mockPi.registerTool).toHaveBeenCalledTimes(1);
+		const registeredTool = mockPi.registerTool.mock.calls[0][0];
+
+		// No manipulation of the active tools list
+		expect(mockPi.setActiveTools).not.toHaveBeenCalled();
+
+		// Calling the tool must return the disabled rejection
+		const result = await registeredTool.execute(
+			'call-id',
+			{
+				questions: [
+					{
+						questionTopic: 'Topic',
+						prompt: 'Pick one',
+						type: 'single',
+						options: [{ value: 'a', label: 'A' }],
+					},
+				],
+			},
+			new AbortController().signal,
+			vi.fn(),
+			{ hasUI: true },
+		);
+
+		expect(result.content[0].text).toContain('Question extension is disabled');
+		expect(result.details).toHaveProperty('cancelled', true);
 	});
 });
