@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-06-13
+
 ### Changed
 
 - **Disabled extension no longer deactivates the tool**: Previously, `pi-question:disabled` and the `--pi-question-disabled` startup flag removed the `question` tool from the host's active tool list. This made the tool silently disappear from the agent's view, so any in-flight call surfaced a generic "tool not found" error. The disabled state now only flips an internal flag: the tool stays registered, and the existing `execute()` rejection path returns the `Question extension is disabled` markdown so the agent (and ultimately the user) get a proper, descriptive message. The non-interactive (`--print`/`-p`) path still skips registration, since the tool fundamentally needs a UI.
