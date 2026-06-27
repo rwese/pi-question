@@ -45,6 +45,9 @@ type RenderOption = QuestionOption & { isOther?: boolean };
 const OTHER_VALUE = '__other__';
 const OTHER_LABEL = 'Other';
 const OTHER_INPUT = '(other)';
+// Sentinel used in `selectedOptions` to represent the synthetic "Other" option
+// in a multi-select question. Real option indices are non-negative.
+const OTHER_INDEX = -1;
 
 // Word-wrap helper constants
 const MAX_WRAP_LINES = 7;
@@ -303,6 +306,10 @@ export default function question(pi: ExtensionAPI) {
 				// For multi-select: track notes for selected items
 				const selectedNotes = new Map<number, Map<number, string>>();
 
+				// For multi-select: track the free-form "Other" label per question
+				// so it can be re-rendered and re-confirmed like any other selection.
+				const otherLabels = new Map<number, string>();
+
 				// Sort options: recommended first, preserve order within groups
 				const sortedQuestions: Question[] = questions.map((q) => ({
 					...q,
@@ -415,24 +422,52 @@ export default function question(pi: ExtensionAPI) {
 					const q = currentQuestion();
 					if (!q) return false;
 					if (q.type === 'multi') {
+						const selected = selectedOptions.get(currentTab);
+						// Other is always appended to the end of currentOptions();
+						// it has no entry in sortedQ.options, so we check it first.
+						const allOpts = currentOptions();
+						if (allOpts[displayIdx]?.isOther) {
+							return selected?.has(OTHER_INDEX) ?? false;
+						}
 						const sortedQ = currentSortedQuestion();
 						if (!sortedQ) return false;
 						const opt = sortedQ.options[displayIdx];
 						if (!opt) return false;
 						const originalIndex = q.options.indexOf(opt);
 						if (originalIndex === -1) return false;
-						return selectedOptions.get(currentTab)?.has(originalIndex) ?? false;
+						return selected?.has(originalIndex) ?? false;
 					}
 					return optionIndex === displayIdx;
 				}
 
 				function toggleOption(displayIdx: number) {
 					const q = currentQuestion();
-					const sortedQ = currentSortedQuestion();
-					if (!q || !sortedQ || q.type !== 'multi') return;
+					if (!q || q.type !== 'multi') return;
 					const selected = selectedOptions.get(currentTab);
 					if (!selected) return;
-					// Convert display index to original index
+					// Other is always appended to the end of currentOptions();
+					// it has no entry in sortedQ.options, so we check it first.
+					const allOpts = currentOptions();
+					if (allOpts[displayIdx]?.isOther) {
+						if (selected.has(OTHER_INDEX)) {
+							// Deselect: remove the sentinel and clear the label
+							selected.delete(OTHER_INDEX);
+							otherLabels.delete(currentTab);
+						} else {
+							// No label yet — open input mode instead of adding a
+							// phantom selection (sentinel without label would
+							// appear checked in the UI but missing from the
+							// saved answer).
+							inputMode = true;
+							inputQuestionIndex = currentTab;
+							noteOptionIndex = null;
+							editor.setText('');
+							refresh();
+						}
+						return;
+					}
+					const sortedQ = currentSortedQuestion();
+					if (!sortedQ) return;
 					const opt = sortedQ.options[displayIdx];
 					if (!opt) return;
 					const originalIndex = q.options.indexOf(opt);
@@ -495,8 +530,21 @@ export default function question(pi: ExtensionAPI) {
 						return [];
 					}
 					const notes = selectedNotes.get(currentTab) || new Map();
+					const otherLabel = otherLabels.get(currentTab);
 					const items: MultiAnswerItem[] = [];
 					for (const idx of selected) {
+						if (idx === OTHER_INDEX) {
+							if (otherLabel !== undefined) {
+								items.push({
+									value: OTHER_INPUT,
+									label: otherLabel,
+									description: undefined,
+									wasCustom: true,
+									note: notes.get(idx),
+								});
+							}
+							continue;
+						}
 						const opt = q.options[idx];
 						if (opt) {
 							items.push({
@@ -561,13 +609,14 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					if (q.type === 'multi') {
+						// Track Other in selectedOptions so navigating back and
+						// re-confirming preserves the custom value.
+						const selected =
+							selectedOptions.get(inputQuestionIndex) ?? new Set<number>();
+						selectedOptions.set(inputQuestionIndex, selected);
+						selected.add(OTHER_INDEX);
+						otherLabels.set(inputQuestionIndex, trimmed);
 						const items = getSelectedItems();
-						items.push({
-							value: OTHER_INPUT,
-							label: trimmed,
-							description: undefined,
-							wasCustom: true,
-						});
 						saveMultiAnswer(inputQuestionIndex, items);
 					} else {
 						saveSingleAnswer(
@@ -961,8 +1010,10 @@ export default function question(pi: ExtensionAPI) {
 					if (isMultiQ) {
 						lines.push('');
 						const items = getSelectedItems();
-						const labels = items.map((i) => i.label);
-						if (labels.length > 0) {
+						if (items.length > 0) {
+							const labels = items.map((i) =>
+								i.note ? `${i.label} (${i.note})` : i.label,
+							);
 							add(theme.fg('muted', ` Selected: ${labels.join(', ')}`));
 						} else {
 							add(theme.fg('muted', ` No options selected`));
