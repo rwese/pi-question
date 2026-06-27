@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Multi-select "Other" value was dropped on re-confirm**: entering a custom Other value in a multi-select question, navigating away to another question, and navigating back to re-confirm silently overwrote the saved answer with only the predefined selections, losing the free-form value. The custom Other is now tracked in `selectedOptions` (sentinel index `-1`) and `otherLabels`, so it round-trips through navigation and re-confirm. The Other option can now also be deselected with Space like any other option.
+- **Multi-select "Other" value was dropped on re-confirm**: entering a custom Other value in a multi-select question, navigating away to another question, and navigating back to re-confirm silently overwrote the saved answer with only the predefined selections, losing the free-form value. The custom Other is now tracked in `selectedOptions` (sentinel index `-1`) and `otherLabels`, so it round-trips through navigation and re-confirm. The Other option can also be deselected with Space once it has a label, and pressing Space on a fresh Other (no label) now opens the input field — same as Enter — instead of creating a phantom selection that would appear checked but be missing from the saved answer.
 
 ### Changed
 
