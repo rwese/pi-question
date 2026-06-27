@@ -282,4 +282,62 @@ describe('Multi-Select: Other persistence on re-confirm', () => {
 		handlers!.handleInput('escape');
 		await resultPromise;
 	});
+
+	it('deselects Other via Space after it was previously entered', async () => {
+		const resultPromise = setupExecute([multiQuestion, singleQuestion]);
+		await waitForHandlers();
+
+		// Q1: toggle Git + enter Other "Custom Tool"
+		handlers!.handleInput(' ');
+		typeOther('Custom Tool', 2);
+		// Q2 → Submit via Enter
+		handlers!.handleInput('enter');
+		// Navigate back to Q1
+		handlers!.handleInput('left');
+		handlers!.handleInput('left');
+		// On Q1, Other is selected with label "Custom Tool"
+		// Move cursor to Other (Git=0, Docker=1, Other=2)
+		handlers!.handleInput('down');
+		handlers!.handleInput('down');
+		// Press Space to deselect Other
+		handlers!.handleInput(' ');
+		// Move cursor back to Git to re-confirm
+		handlers!.handleInput('up');
+		handlers!.handleInput('up');
+		handlers!.handleInput('enter'); // re-confirm Q1
+		handlers!.handleInput('enter'); // re-confirm Q2
+		handlers!.handleInput('enter'); // submit
+
+		const result = (await resultPromise) as { details: { answers: MultiAnswer[] } };
+		const items = result.details.answers[0].items;
+		// Git should still be selected, Other should be gone
+		expect(items.some((i) => i.value === 'git')).toBe(true);
+		expect(items.some((i) => i.value === '(other)')).toBe(false);
+	});
+
+	it('does not create a phantom Other selection when Space is pressed on Other with no prior label', async () => {
+		// Regression: Space on Other with no label previously added OTHER_INDEX
+		// to selectedOptions without setting otherLabels, leaving Other visually
+		// checked but missing from the saved answer.
+		// Fix: Space on Other with no label should open input mode (same as Enter).
+		const resultPromise = setupExecute([multiQuestion]);
+		await waitForHandlers();
+
+		// Move cursor to Other (Git=0, Docker=1, Other=2)
+		handlers!.handleInput('down');
+		handlers!.handleInput('down');
+		// Press Space on Other with no prior label
+		handlers!.handleInput(' ');
+		// Type a label and submit via Enter (confirms input mode is active)
+		for (const ch of 'Custom') handlers!.handleInput(ch);
+		handlers!.handleInput('enter');
+
+		const result = (await resultPromise) as { details: { answers: MultiAnswer[] } };
+		const items = result.details.answers[0].items;
+		// Only the custom Other should be in the answer
+		expect(items).toHaveLength(1);
+		const otherItem = items.find((i) => i.value === '(other)');
+		expect(otherItem).toBeDefined();
+		expect(otherItem?.label).toBe('Custom');
+	});
 });

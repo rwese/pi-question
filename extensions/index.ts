@@ -450,10 +450,19 @@ export default function question(pi: ExtensionAPI) {
 					const allOpts = currentOptions();
 					if (allOpts[displayIdx]?.isOther) {
 						if (selected.has(OTHER_INDEX)) {
+							// Deselect: remove the sentinel and clear the label
 							selected.delete(OTHER_INDEX);
 							otherLabels.delete(currentTab);
 						} else {
-							selected.add(OTHER_INDEX);
+							// No label yet — open input mode instead of adding a
+							// phantom selection (sentinel without label would
+							// appear checked in the UI but missing from the
+							// saved answer).
+							inputMode = true;
+							inputQuestionIndex = currentTab;
+							noteOptionIndex = null;
+							editor.setText('');
+							refresh();
 						}
 						return;
 					}
