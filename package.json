@@ -1,6 +1,6 @@
 {
   "name": "@rwese/pi-question",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Unified question tool for pi coding agent - single or multi-question interactions with optional notes and custom input support",
   "type": "module",
   "main": "./extensions/index.ts",
@@ -49,7 +49,6 @@
     "lint-staged": "^16.4.0",
     "lockfile-lint": "^5.0.0",
     "prettier": "^3.4.0",
-
     "tsx": "^4.0.0",
     "vitest": "^2.0.0"
   },
