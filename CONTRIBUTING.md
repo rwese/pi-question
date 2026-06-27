@@ -63,7 +63,20 @@ npm run release:minor
 npm run release:major
 ```
 
-This runs validation, bumps version, commits, pushes, and publishes to npm.
+This runs validation, bumps the version, commits the version bump, and pushes
+both `main` and the version tag to GitHub.
+
+Publishing to npm is done **manually** after the push:
+
+```bash
+npm publish
+```
+
+This is a deliberate split — `npm publish` is not part of the release scripts
+because the npm token is not always available in every environment (CI, local
+dev, etc.). When a valid token is present, `npm publish` works directly;
+otherwise, publish from the npm web UI at
+https://www.npmjs.com/package/@rwese/pi-question.
 
 ## Questions?
 

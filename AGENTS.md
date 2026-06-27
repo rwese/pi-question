@@ -17,9 +17,10 @@ npm run scan:secrets:deep  # Trufflehog - deep filesystem scan
 npm run scan:secrets:ci    # Gitleaks - CI mode (no color)
 
 # Release
-npm run release:patch   # patch + push + publish
-npm run release:minor   # minor + push + publish
-npm run release:major   # major + push + publish
+npm run release:patch   # validate + patch bump + push (tag included)
+npm run release:minor   # validate + minor bump + push (tag included)
+npm run release:major   # validate + major bump + push (tag included)
+# Publish is done manually: npm publish  (or via the npm web UI)
 ```
 
 ## Project Structure
